@@ -1,0 +1,1765 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>鼠标</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%8C%A8%EF%B8%8F%3C/text%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#f3f5f9; --card:#ffffff; --ink:#20242e; --muted:#7b8394; --line:#e6e9f0;
+  --accent:#3d5af1; --accent-weak:#eef1ff; --price:#e0472f; --green:#1a9e5c;
+  --radius:14px;
+  --shadow:0 1px 2px rgba(16,24,40,.05), 0 4px 16px rgba(16,24,40,.07);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:"Segoe UI","Microsoft YaHei","PingFang SC","Helvetica Neue",Arial,sans-serif;
+  font-size:14px; line-height:1.6;
+}
+.hidden{display:none!important}
+button{font-family:inherit}
+
+/* ---------- 头部 ---------- */
+.hero{
+  background:linear-gradient(135deg,#141a2e 0%,#1d2a4d 55%,#24386b 100%);
+  color:#fff; padding:20px 20px;
+}
+.hero-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.hero-text{flex:1;min-width:260px;display:flex;align-items:center;gap:12px}
+.hero h1{font-size:26px;font-weight:800;letter-spacing:.5px}
+.hero .sub{margin-top:6px;font-size:13px;color:#aab6d4}
+.ctl{
+  border:1px solid var(--line);border-radius:9px;background:#fbfcfe;
+  padding:7px 9px;font-size:13px;color:var(--ink);outline:none;cursor:pointer;flex:none;
+  max-width:170px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.dir-btn{overflow:visible;line-height:1;border-radius:0 8px 8px 0}
+.sort-group .ctl{background:transparent}
+.w-no{color:#9aa2b1}
+/* 多选筛选下拉 */
+.mselect{position:relative;flex:none}
+.ms-btn{display:inline-flex;align-items:center}
+.ms-btn::after{content:"▾";font-size:10px;color:var(--muted);margin-left:5px}
+/* 排序 + 升降序 融合控件 */
+.sort-group{
+  display:flex;align-items:stretch;flex:none;
+  border:1px solid var(--line);border-radius:9px;background:#fbfcfe;
+  transition:border-color .15s, box-shadow .15s;
+}
+.sort-group:hover{border-color:#c9d1e2}
+.sort-group:focus-within,.sort-group.open{
+  border-color:var(--accent);box-shadow:0 0 0 3px rgba(61,90,241,.12);
+}
+.sort-group button{outline:none}
+.sort-group .mselect .ms-btn{border:none;border-radius:0;height:100%;background:transparent}
+.dir-btn{
+  border:none;border-left:1px solid var(--line);background:transparent;
+  padding:0 9px;font-size:12px;cursor:pointer;color:var(--ink);
+}
+.dir-btn:hover{background:#eef1f8;color:var(--accent)}
+.ms-panel{
+  position:absolute;top:calc(100% + 6px);left:0;z-index:60;background:#fff;
+  border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 32px rgba(16,24,40,.16);
+  padding:6px;min-width:150px;max-height:300px;overflow-y:auto;
+}
+.ms-actions{
+  display:flex;gap:8px;justify-content:flex-end;
+  border-bottom:1px solid var(--line);padding:2px 6px 6px;margin-bottom:4px;
+}
+.ms-all{font-size:12px;color:var(--accent);background:none;border:none;cursor:pointer;padding:2px 4px}
+.ms-all:hover{text-decoration:underline}
+.ms-panel label{
+  display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:7px;
+  font-size:13px;cursor:pointer;white-space:nowrap;
+}
+.ms-panel label:hover{background:#f2f4fa}
+/* 单选面板选项(排序 / 无线) */
+.ms-opt{
+  display:block;width:100%;text-align:left;padding:8px 10px;
+  border:none;background:none;font-size:13px;cursor:pointer;
+  border-radius:7px;color:var(--ink);white-space:nowrap;
+}
+.ms-opt:hover{background:#f2f4fa}
+.ms-opt.on{color:var(--accent);background:var(--accent-weak);font-weight:600}
+.ms-panel label:hover{background:#f2f4fa}
+/* 表头排序 */
+th.sortable{cursor:pointer;user-select:none}
+th.sortable:hover,th.sortable.active{color:var(--accent)}
+th .arr{font-size:10px;margin-left:3px}
+.refresh-btn{
+  background:#fff;color:#1d2740;border:none;border-radius:999px;
+  padding:10px 20px;font-size:14px;font-weight:700;cursor:pointer;
+  box-shadow:0 4px 14px rgba(0,0,0,.28);transition:transform .15s,box-shadow .15s;
+  flex:none;
+}
+.refresh-btn:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(0,0,0,.32)}
+
+/* ---------- 工具栏 ---------- */
+.toolbar{position:sticky;top:12px;z-index:40;padding:0 16px;margin-top:16px}
+.toolbar-inner{
+  max-width:1200px;margin:0 auto;background:#fff;border:1px solid var(--line);
+  border-radius:12px;box-shadow:var(--shadow);
+  display:flex;gap:12px;align-items:center;padding:8px 10px;flex-wrap:wrap;
+}
+.tb-filters{display:contents}
+.tb-menu{
+  border:1px solid var(--line);background:#fbfcfe;border-radius:9px;
+  width:32px;height:32px;flex:none;order:-1;
+  display:inline-flex;align-items:center;justify-content:center;
+  color:var(--ink);cursor:pointer;
+}
+.tb-menu:hover{border-color:#c9d1e2;background:#fff}
+#navBtn2{overflow:hidden;
+  transition:width .3s cubic-bezier(.2,.9,.3,1),margin .3s cubic-bezier(.2,.9,.3,1),opacity .26s}
+#navBtn2.closed{width:0;opacity:0;margin-right:-12px;pointer-events:none}
+#navBtn2:not(.closed){animation:menuDrop .32s cubic-bezier(.2,.9,.3,1)}
+.tb-pay{width:32px;flex:none;overflow:hidden;
+  transition:width .3s cubic-bezier(.2,.9,.3,1),margin .3s cubic-bezier(.2,.9,.3,1),opacity .26s}
+.tb-pay.closed{width:0;opacity:0;margin-left:-12px;pointer-events:none}
+.tb-pay:not(.closed) .tb-menu{animation:menuDropR .32s cubic-bezier(.2,.9,.3,1)}
+@keyframes menuDropR{
+  from{opacity:0;transform:translate(46px,-72px)}
+  to{opacity:1;transform:none}
+}
+#navBtn2:not(.closed){animation:menuDrop .32s cubic-bezier(.2,.9,.3,1)}
+@keyframes menuDrop{
+  from{opacity:0;transform:translate(-46px,-72px)}
+  to{opacity:1;transform:none}
+}
+.seg{display:flex;background:#f1f3f8;border-radius:9px;padding:3px;flex:none;margin-right:auto}
+.seg button{
+  border:none;background:transparent;padding:6px 16px;border-radius:7px;
+  font-size:13px;cursor:pointer;color:#5b6373;
+}
+.seg button.active{background:#fff;color:var(--ink);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+/* 搜索:扁平图标按钮,点击向左展开输入框 */
+.search-wrap{display:flex;align-items:center;flex:none;position:relative}
+#search{
+  flex:1 1 0;width:0;min-width:0;opacity:0;padding:0;height:34px;
+  border:1px solid transparent;border-radius:999px;background:transparent;
+  outline:none;font-size:13px;
+  transition:width .25s ease,opacity .2s ease,padding .25s ease,background .2s ease,border-color .2s ease,box-shadow .2s ease;
+}
+.search-wrap.open{flex:0 0 auto;width:min(320px,40vw)}
+.search-wrap.open #search{
+  opacity:1;padding:8px 8px 8px 14px;
+  border-color:var(--line);background:#fbfcfe;
+}
+#search:focus{border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px rgba(61,90,241,.12)}
+.s-btn{
+  border:none;background:transparent;color:var(--muted);cursor:pointer;
+  width:34px;height:34px;border-radius:50%;flex:none;margin-left:6px;
+  display:flex;align-items:center;justify-content:center;
+  transition:color .15s,background .15s;
+}
+.s-btn:hover{color:var(--accent);background:rgba(0,0,0,.04)}
+.search-wrap.open .s-btn{color:var(--accent);background:var(--accent-weak)}
+.s-ico{
+  display:none;position:absolute;left:10px;top:50%;transform:translateY(-50%);
+  color:var(--muted);pointer-events:none;
+}
+.model .g{color:#98a1b3;font-size:13px;font-weight:600}
+.c-model .g{color:#6b7280;font-size:12.5px}
+.c-fac{color:var(--ink);font-size:12.5px;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.c-memo{max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#666e7e}
+.memo{font-size:12px;color:#8494f4;margin:-4px 0 10px}
+.lb-cap-sub{color:#aab3c5;font-size:12px;text-align:center;margin-top:-6px}
+.acc{color:var(--accent)}
+.memo-td{max-width:260px;white-space:normal}
+
+/* ---------- 卡片 ---------- */
+main{max-width:1200px;margin:0 auto;padding:0 16px}
+.cards{
+  margin-top:20px;display:grid;gap:18px;
+  grid-template-columns:repeat(4,1fr);
+}
+.card{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  overflow:hidden;box-shadow:var(--shadow);
+  transition:transform .18s,box-shadow .18s;display:flex;flex-direction:column;
+}
+.card:hover{transform:translateY(-3px);box-shadow:0 8px 26px rgba(16,24,40,.13)}
+/* 已出售:灰色蒙版 + 闲鱼风「卖掉了」印章图 */
+.card.sold{position:relative}
+/* 已出售:仅一层蒙版 + 印章,图片文字保持原样 */
+.card.sold{position:relative}
+.card.sold::before{
+  content:"";position:absolute;inset:0;z-index:3;pointer-events:none;
+  background:linear-gradient(160deg,rgba(255,255,255,.52) 0%,rgba(214,220,230,.34) 52%,rgba(198,205,217,.40) 100%);
+}
+*{-webkit-tap-highlight-color:transparent}
+button,button *{-webkit-user-select:none;user-select:none}
+button:focus,button:focus-visible{outline:none}
+/* 印章:盖在缩略图区正中,不透明度 70% */
+.card.sold .card-img::after{
+  content:"";position:absolute;left:50%;top:50%;
+  width:min(48%,156px);aspect-ratio:459/303;
+  transform:translate(-50%,-50%) rotate(-8deg);
+  background:url("../资源图/已出售_闲鱼.png") center/contain no-repeat;
+  filter:drop-shadow(0 3px 12px rgba(20,26,46,.30));
+  opacity:.8;
+  z-index:5;pointer-events:none;
+}
+/* 图片懒加载:底色占位,加载完成后渐显 */
+.card-img{background:#eef1f5}
+.card-img img.main{opacity:0;transition:opacity .25s ease}
+.card-img img.main.ld{opacity:1}
+.c-img img{opacity:0;transition:opacity .25s ease}
+.c-img img.ld{opacity:1}
+tr.sold-tr td{color:#b3bac7!important}
+tr.sold-tr .price-cell{color:#b3bac7!important}
+tr.sold-tr .price-cell.orig-p{color:#c4cad6!important;text-decoration:line-through}
+tr.sold-tr .off{filter:grayscale(1);opacity:.45}
+tr.sold-tr .w-yes{color:#b3bac7!important}
+tr.sold-tr{background:#f8f9fc}
+tr.sold-tr:hover{background:#f2f4f9}
+.card-img{
+  position:relative;aspect-ratio:4/3;background:#edeff4;overflow:hidden;flex:none;
+}
+/* 骨架屏:图片加载完成前微光扫过,加载完成后被图片覆盖 */
+.card-img::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(100deg,transparent 32%,rgba(255,255,255,.6) 50%,transparent 68%);
+  background-size:200% 100%;
+  animation:skelSweep 1.5s ease-in-out infinite;
+}
+@keyframes skelSweep{
+  from{background-position:120% 0}
+  to{background-position:-120% 0}
+}
+.card-img img.main{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  transition:transform .35s;cursor:zoom-in;display:block;
+}
+/* 占位图整图显示,不被裁切 */
+.card-img img.noimg-main{object-fit:contain;background:#eef1f5;cursor:default}
+.card-img:hover img.noimg-main{transform:none}
+.card-img:hover img.main{transform:scale(1.045)}
+.card-img.no-img{cursor:pointer}
+.card-img.no-img:hover .ph{border-color:var(--accent)}
+.card-img.no-img:hover .ph-t{color:var(--accent)}
+.badge,.count{
+  position:absolute;top:10px;z-index:2;
+  background:rgba(15,18,28,.85);color:#fff;font-size:12px;font-weight:600;
+  padding:3px 10px;border-radius:999px;
+}
+.badge{left:10px}
+.count{right:10px}
+.ph{
+  position:absolute;inset:13px;border:1.5px dashed #c6cdda;border-radius:10px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
+}
+.ph-ico{font-size:26px;opacity:.45}
+.ph-t{font-size:12px;color:var(--muted)}
+.ph-f{
+  font-size:11px;color:#8d97ab;background:#f5f7fa;border:1px solid #e4e8f0;
+  padding:2px 9px;border-radius:6px;font-family:Consolas,monospace;
+}
+.card-strip{display:flex;gap:6px;padding:8px 12px 0;overflow-x:auto;flex:none}
+.card-strip:empty{display:none}
+.card-strip img{
+  width:50px;height:38px;object-fit:cover;border-radius:6px;cursor:zoom-in;
+  border:1px solid var(--line);flex:none;
+}
+.card-strip img:hover{border-color:var(--accent)}
+.card-body{padding:13px 16px 16px;display:flex;flex-direction:column;flex:1}
+.brand{font-size:12px;letter-spacing:1.5px;color:var(--muted);font-weight:600;text-transform:uppercase}
+.model{font-size:17px;font-weight:700;line-height:1.35}
+.model-row{display:flex;align-items:center;gap:8px;margin:2px 0 10px}
+.model-row .model{flex:1;min-width:0}
+.copy-btn{
+  border:none;background:none;color:#b7bfcf;cursor:pointer;
+  padding:3px;border-radius:6px;line-height:0;flex:none;
+}
+.copy-btn:hover{color:var(--accent);background:var(--accent-weak)}
+.c-model{width:var(--model-w,185px);max-width:var(--model-w,185px)}
+.c-model .mw{display:flex;align-items:center;gap:8px;width:100%;box-sizing:border-box;min-width:0}
+.c-model .mw .mt{flex:0 1 auto;min-width:0;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.c-model .mw .g{flex:0 1 auto;min-width:0;max-width:40%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:400}
+.c-model .mw .copy-btn{margin-left:auto;flex:none}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{
+  font-size:12px;padding:3px 10px;border-radius:999px;background:#f2f4f8;color:#4a5265;
+}
+.chip.yes{background:#e7f7ee;color:#177a48;font-weight:600}
+.card-foot{display:flex;align-items:flex-end;gap:8px;margin-top:auto;padding-top:14px}
+.p-main{display:flex;align-items:flex-end;gap:7px}
+.cur{color:var(--price);font-size:32px;font-weight:800;line-height:1}
+.cur .num{display:inline-block;transform:scaleY(1.1);transform-origin:bottom;font-style:normal}
+.cur .yen{font-size:14px;font-weight:700;margin-right:1px}
+.orig{font-size:12px;color:#a3aab8;margin-top:1px;text-decoration:line-through}
+.off{
+  font-size:10px;font-weight:700;color:#d64a33;background:#fdeceb;
+  border-radius:6px;padding:1px 6px;line-height:1.4;
+}
+.meta{margin-left:auto;text-align:right;font-size:12px;color:var(--muted);line-height:1.5}
+
+/* ---------- 表格 ---------- */
+.table-wrap{
+  margin-top:20px;background:#fff;border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow);overflow-x:auto;
+}
+table{width:100%;border-collapse:collapse;min-width:1080px}
+th{
+  font-size:12px;color:var(--muted);font-weight:600;text-align:left;
+  padding:11px 12px;background:#f8f9fc;border-bottom:1px solid var(--line);white-space:nowrap;
+}
+td{padding:9px 12px;font-size:13px;border-bottom:1px solid #f0f2f6;white-space:nowrap}
+tbody tr:nth-child(even){background:#fafbfd}
+tbody tr:hover{background:#f2f5ff}
+tbody tr:last-child td{border-bottom:none}
+.c-id{color:var(--muted);font-family:Consolas,monospace}
+.c-model{font-weight:600}
+.c-img{background:#edeff4}
+.c-img img{
+  width:48px;height:36px;object-fit:cover;border-radius:5px;cursor:zoom-in;
+  border:1px solid var(--line);display:block;
+}
+.noimg{color:#c3c9d6}
+.c-st{white-space:nowrap}
+.st-done{display:inline-block;font-size:11px;font-weight:600;color:#8a919e;
+  background:#eef0f4;border:1px solid #d9dee7;border-radius:999px;padding:2px 9px;
+  white-space:nowrap}
+.st-tag{display:inline-block;font-size:11px;font-weight:600;color:#8a6d1a;
+  background:#fdf3d7;border:1px solid #ecd9a0;border-radius:999px;padding:2px 9px;
+  white-space:nowrap}
+.price-cell{color:var(--price);font-weight:700}
+.price-cell.orig-p{color:#a3aab8;font-weight:400;text-decoration:line-through}
+.w-yes{color:var(--green);font-weight:600}
+
+.empty{
+  text-align:center;color:var(--muted);padding:70px 0;font-size:14px;
+}
+
+/* ---------- 页脚 ---------- */
+footer{max-width:1200px;margin:34px auto 0;padding:0 16px 56px}
+.copy{text-align:center;font-size:12px;color:#a3aab8;margin-top:18px}
+
+/* ---------- 灯箱(大图) ---------- */
+.lb{
+  position:fixed;inset:0;z-index:100;background:rgba(8,10,16,.93);
+  display:flex;align-items:center;justify-content:center;
+}
+.lb figure{display:flex;flex-direction:column;align-items:center;gap:12px}
+.lb-stage{
+  width:92vw;max-width:1500px;height:calc(100vh - 190px);max-height:82vh;
+  overflow:hidden;display:flex;align-items:center;justify-content:center;
+  background:#111;border-radius:8px;cursor:zoom-in;touch-action:none;
+  box-shadow:0 10px 50px rgba(0,0,0,.6);
+}
+.lb-stage.zoomed{cursor:grab}
+.lb-stage.dragging{cursor:grabbing}
+.lb-stage img{
+  max-width:100%;max-height:100%;object-fit:contain;
+  user-select:none;-webkit-user-drag:none;
+}
+.lb figcaption{color:#cfd4e0;font-size:13px;letter-spacing:.5px}
+.lb-zoom{
+  display:flex;align-items:center;gap:2px;
+  background:rgba(255,255,255,.1);border-radius:999px;padding:4px;
+}
+.lb-zoom button{
+  border:none;cursor:pointer;background:transparent;color:#fff;
+  width:30px;height:30px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;line-height:1;
+}
+.lb-zoom button:hover{background:rgba(255,255,255,.18)}
+.lb-zoom .val{
+  min-width:50px;text-align:center;color:#fff;font-weight:600;
+  font-size:12.5px;font-variant-numeric:tab-nums;
+}
+.lb-zoom .sep{width:1px;height:16px;background:rgba(255,255,255,.25);margin:0 6px}
+.lb-zoom button.txt{width:auto;padding:0 10px;font-size:12.5px;color:#cfd4e0}
+.lb-zoom button.txt:hover{color:#fff;background:transparent}
+.lb-x{
+  position:absolute;top:16px;right:22px;background:none;border:none;
+  color:#fff;font-size:30px;line-height:1;cursor:pointer;opacity:.75;
+}
+.lb-x:hover{opacity:1}
+.lb-nav{
+  position:absolute;top:50%;transform:translateY(-50%);
+  width:46px;height:46px;border-radius:50%;border:none;cursor:pointer;
+  background:rgba(255,255,255,.12);color:#fff;font-size:26px;line-height:1;
+}
+.lb-nav:hover{background:rgba(255,255,255,.28)}
+.lb-nav.prev{left:18px}
+.lb-nav.next{right:18px}
+
+/* ---------- 弹窗(刷新) ---------- */
+.overlay{
+  position:fixed;inset:0;z-index:90;background:rgba(15,18,28,.5);
+  display:flex;align-items:center;justify-content:center;padding:20px;
+}
+.sheet{
+  background:#fff;border-radius:16px;width:460px;max-width:100%;max-height:88vh;
+  overflow-y:auto;padding:18px 18px 14px;box-shadow:0 20px 60px rgba(0,0,0,.3);
+}
+.sheet-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.sheet-head h3{font-size:17px}
+.sheet-head .x{
+  border:none;background:none;font-size:24px;cursor:pointer;color:var(--muted);line-height:1;
+}
+.sheet-tip{font-size:12px;color:var(--muted);margin-bottom:8px}
+.act{
+  width:100%;display:flex;gap:12px;align-items:center;text-align:left;
+  padding:12px 13px;border:1px solid var(--line);border-radius:12px;
+  background:#fff;cursor:pointer;margin-top:10px;transition:all .12s;
+}
+.act:hover{border-color:var(--accent);background:var(--accent-weak)}
+.act .ico{
+  font-size:19px;width:42px;height:42px;display:flex;align-items:center;justify-content:center;
+  background:#f2f4fa;border-radius:10px;flex:none;
+}
+.act tt{font-size:14px;font-weight:700;display:block;color:var(--ink)}
+.act i{font-style:normal;font-size:12px;color:var(--muted);display:block;margin-top:1px}
+
+/* ---------- Toast ---------- */
+#toast{
+  position:fixed;bottom:26px;left:50%;transform:translateX(-50%);z-index:120;
+  background:#23283a;color:#fff;font-size:13px;padding:10px 20px;border-radius:999px;
+  box-shadow:0 6px 24px rgba(0,0,0,.3);max-width:86vw;text-align:center;
+}
+/* ---------- 提示弹窗 ---------- */
+.alert-box{
+  background:#fff;border-radius:14px;width:420px;max-width:92vw;
+  padding:24px 22px 18px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3);
+}
+.alert-ico{font-size:34px;line-height:1}
+.alert-msg{margin:12px 0 18px;font-size:13.5px;color:var(--ink);line-height:1.8;word-break:break-all;text-align:center;white-space:pre-line}
+.alert-ok{
+  background:var(--accent);color:#fff;border:none;border-radius:999px;
+  padding:8px 36px;font-size:14px;font-weight:600;cursor:pointer;
+}
+.alert-ok:hover{filter:brightness(1.08)}
+/* ---------- 付款码浮层(贴按钮弹出) ---------- */
+.pay-anchor{position:relative;flex:none;z-index:45}
+.pay-pop{
+  position:absolute;top:calc(100% + 12px);right:0;z-index:60;
+  background:#fff;border-radius:14px;padding:14px;
+  box-shadow:0 16px 48px rgba(0,0,0,.35);
+  width:max-content;max-width:92vw;
+  transform-origin:top right;
+  animation:popIn .26s cubic-bezier(.2,.9,.3,1);
+}
+.pay-pop.closing{animation:popOut .18s ease forwards}
+@keyframes popIn{
+  from{opacity:0;transform:translateY(-8px)}
+  to{opacity:1;transform:none}
+}
+@keyframes popOut{
+  from{opacity:1;transform:none}
+  to{opacity:0;transform:translateY(-8px)}
+}
+.pay-tabs{display:flex;gap:8px;margin-bottom:12px;justify-content:center}
+.pay-tab{
+  border:1px solid var(--line);background:#fff;border-radius:9px;
+  padding:6px 18px;font-size:14px;cursor:pointer;color:var(--muted);
+}
+.pay-tab.active{
+  border-color:var(--accent);background:var(--accent-weak);
+  color:var(--accent);font-weight:600;
+}
+.pay-item{margin:0}
+.pay-wrap{display:flex;justify-content:center;overflow:auto;max-width:100%;max-height:calc(92vh - 190px)}
+.pay-img{display:block;width:222px;height:300px;max-width:100%;object-fit:contain}
+.pay-x{
+  position:absolute;top:8px;right:10px;border:none;background:none;
+  color:var(--muted);font-size:24px;line-height:1;cursor:pointer;z-index:2;
+  display:none;
+}
+.pay-pop:hover .pay-x{color:var(--ink)}
+.pay-note{margin-top:12px;font-size:15px;font-weight:700;color:#e02020;text-align:center;white-space:nowrap;overflow:hidden}
+
+.toolbar{transition:transform .28s ease}
+.toolbar.tb-hidden{transform:translateY(-115%)}
+@media (max-width:640px){
+  .hero{padding:16px 14px}
+  .hero h1{font-size:17px;line-height:1.3}
+  .hero-text{min-width:0}
+  .hero-inner{align-items:center}
+  .refresh-btn{padding:7px 14px;font-size:13px}
+  .toolbar{top:6px;padding:0 10px;margin-top:10px}
+}
+/* ---------- 手机端竖屏 ---------- */
+@media (max-width:1024px){ .cards{grid-template-columns:repeat(3,1fr)} }
+@media (max-width:680px){
+  .cards{grid-template-columns:repeat(2,1fr);gap:12px}
+  .hero{padding:16px 14px}
+  .hero-inner{gap:10px}
+  .refresh-btn{padding:8px 16px;font-size:13px}
+  .toolbar{top:6px;padding:0 10px;margin-top:10px}
+  .toolbar-inner{gap:6px;padding:6px}
+  #navBtn2.closed{margin-right:-6px}
+  .ctl{padding:4px 6px;font-size:12px}
+  .ms-btn::after{margin-left:3px}
+  #viewSeg{flex:1 1 auto;min-width:0;margin-right:0;order:0}
+  #viewSeg button{flex:1;text-align:center;padding:6px 0}
+  .tb-filters{display:flex;flex:1 1 100%;flex-wrap:wrap;gap:5px;min-width:0;align-items:stretch;order:6}
+  .tb-filters > *{box-sizing:border-box}
+  .toolbar{transition:transform .28s ease}
+  .toolbar.tb-hidden{transform:translateY(-115%)}
+  .tb-break{display:block;flex-basis:100%;height:0}
+  .search-wrap{flex:1 1 auto;min-width:0;cursor:default;height:24px;position:relative}
+  .sort-group{flex:0 0 auto;min-width:0;height:24px}
+  .s-ico{display:flex;left:8px}
+  .s-btn{display:none}
+  #search{height:24px;width:100%;min-width:0;opacity:1;padding:0 8px 0 36px;border-color:var(--line);background:#fbfcfe;font-size:12px}
+  .sort-group .ms-btn{height:100%;width:100%;justify-content:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 6px}
+  .sort-group .dir-btn{height:100%;width:28px;padding:0}
+  .tb-filters > .mselect{flex:1 1 0;min-width:0;order:5}
+  .tb-pay{order:1;margin-left:0}
+  .tb-pay.closed{margin-left:-6px}
+  #searchWrap{order:2}
+  .sort-group{order:3}
+  .tb-break{order:4}
+  .seg{order:0;flex:1 1 auto;min-width:0;margin-right:0}
+  .seg button{flex:1 1 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px;padding:4px 2px}
+  .mselect .ms-btn{height:100%;width:100%;justify-content:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 6px}
+  .ms-panel{left:0;min-width:150px;width:max-content;max-width:calc(100vw - 16px)}
+  .ctl{max-width:none}
+  .copy-btn{padding:6px}
+  /* 付款码:手机端为底部抽屉 */
+  .pay-pop{
+    position:fixed;top:auto;bottom:0;left:0;right:0;width:auto;max-width:none;
+    border-radius:16px 16px 0 0;transform-origin:bottom center;
+    animation:popUp .26s cubic-bezier(.2,.9,.3,1);
+  }
+  .pay-pop.closing{animation:popOutUp .18s ease forwards}
+  .pay-x{display:block}
+  .pay-wrap{max-width:none;max-height:52vh;display:flex;justify-content:center}
+  .lb-nav{width:38px;height:38px}
+  .lb-nav.prev{left:8px}
+  .lb-nav.next{right:8px}
+}
+@keyframes popUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+@keyframes popOutUp{from{opacity:1}to{opacity:0;transform:translateY(24px)}}
+@media (max-width:420px){ .cards{grid-template-columns:1fr} }
+/* ---------- 品类菜单:汉堡按钮 + 左侧抽屉 ---------- */
+.nav-btn{
+  width:38px;height:38px;border-radius:50%;border:none;cursor:pointer;flex:none;
+  background:rgba(255,255,255,.18);color:#fff;
+  display:inline-flex;align-items:center;justify-content:center;
+  transition:background .15s;
+}
+.nav-btn:hover{background:rgba(255,255,255,.32)}
+.nav-mask{position:fixed;inset:0;background:rgba(15,18,28,.45);z-index:70;
+  opacity:0;pointer-events:none;transition:opacity .22s}
+.nav-mask.show{opacity:1;pointer-events:auto}
+.nav-drawer{
+  position:fixed;left:0;top:0;bottom:0;width:236px;background:#fff;z-index:71;
+  transform:translateX(-102%);transition:transform .25s ease;
+  box-shadow:8px 0 32px rgba(0,0,0,.18);padding:14px 10px;
+  display:flex;flex-direction:column;
+}
+.nav-drawer.open{transform:none}
+.nav-head{font-size:13px;font-weight:700;color:var(--muted);padding:8px 12px 10px;letter-spacing:1px}
+.nav-item{
+  display:flex;align-items:center;justify-content:flex-start;gap:8px;
+  border:none;background:none;width:100%;text-align:left;cursor:pointer;
+  font-size:15px;color:var(--ink);padding:11px 12px;border-radius:10px;font-weight:700;
+}
+.nav-item:hover{background:#f1f4f9}
+.nav-item.cur{background:var(--accent-weak);color:var(--accent);font-weight:700}
+.nav-item.off{color:#b6bdcb}
+.nav-item.off:hover{background:none}
+.nav-item .tag{font-size:11px;color:#b6bdcb;margin-left:auto}
+.nav-date{margin-top:auto;font-size:11px;color:#b6bdcb;padding:0 12px 8px}
+.nav-foot{padding-top:8px;border-top:1px solid var(--line)}
+.nav-link{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  font-size:14px;color:var(--ink);text-decoration:none;
+  padding:10px 12px;border-radius:10px;
+}
+.nav-link:hover{background:#f1f4f9}
+.nav-link svg{opacity:.45}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-inner">
+    <div class="hero-text">
+      <button type="button" class="nav-btn" id="navBtn" title="切换分类" aria-label="打开分类菜单">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+      <h1>鼠标</h1>
+    </div>
+    <div class="pay-anchor">
+      <button class="refresh-btn" id="btnPay"><svg width="15" height="15" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" style="margin-right:6px;vertical-align:-2px"><rect x="1" y="1" width="7" height="7" fill="none" stroke="currentColor" stroke-width="2"/><rect x="12" y="1" width="7" height="7" fill="none" stroke="currentColor" stroke-width="2"/><rect x="1" y="12" width="7" height="7" fill="none" stroke="currentColor" stroke-width="2"/><rect x="3.5" y="3.5" width="2" height="2"/><rect x="14.5" y="3.5" width="2" height="2"/><rect x="3.5" y="14.5" width="2" height="2"/><rect x="12" y="12" width="2" height="2"/><rect x="16" y="12" width="2" height="2"/><rect x="14" y="14" width="2" height="2"/><rect x="12" y="16" width="2" height="2"/><rect x="16" y="16" width="2" height="2"/></svg>付款码</button>
+      <div id="payModal" class="pay-pop hidden">
+        <button type="button" class="pay-x" id="payClose" title="关闭">×</button>
+        <div class="pay-tabs">
+          <button type="button" class="pay-tab active" data-pay="wx">微信</button>
+          <button type="button" class="pay-tab" data-pay="ali">支付宝</button>
+        </div>
+        <figure class="pay-item" id="payFigWx">
+          <div class="pay-wrap"><img class="pay-img" src="../付款码/微信.png" alt="微信支付" decoding="async"></div>
+        </figure>
+        <figure class="pay-item hidden" id="payFigAli">
+          <div class="pay-wrap"><img class="pay-img" src="../付款码/支付宝.jpg" alt="支付宝" decoding="async"></div>
+        </figure>
+        <div class="pay-note" id="payNote">请勿直接付款，谨防上当受骗</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div id="navMask" class="nav-mask"></div>
+<aside id="navDrawer" class="nav-drawer" aria-label="分类菜单">
+  <div class="nav-head">闲置物品</div>
+  <nav id="navList"></nav>
+  <div class="nav-date">数据生成于 2026-09-09 05:01</div>
+  <div class="nav-foot">
+    <a class="nav-link" href="https://www.mousetester.cn/?utm_source=keyboard" target="_blank" rel="noopener">鼠标测试工具
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg>
+    </a>
+    <a class="nav-link" href="https://www.keyboardtest.cn/" target="_blank" rel="noopener">键盘测试工具
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg>
+    </a>
+  </div>
+</aside>
+
+<div class="toolbar">
+  <div class="toolbar-inner">
+    <div class="seg" id="viewSeg">
+      <button data-view="cards" class="active">卡片视图</button>
+      <button data-view="table">表格视图</button>
+    </div>
+    <div class="tb-filters" id="tbFilters">
+    <div class="search-wrap" id="searchWrap">
+      <span class="s-ico">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      </span>
+      <input id="search" type="search" placeholder="搜索:品牌 / 型号 / 状态 …">
+      <button type="button" id="searchBtn" class="s-btn" title="搜索 / 关闭">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      </button>
+    </div>
+    <div class="sort-group">
+      <div class="mselect">
+        <button type="button" class="ctl ms-btn" id="sortMSBtn" title="排序字段">排序:默认</button>
+        <div class="ms-panel hidden" id="sortMSPanel"></div>
+      </div>
+      <button type="button" id="dirBtn" class="ctl dir-btn" title="切换升 / 降序">▲</button>
+    </div>
+    <span class="tb-break" aria-hidden="true"></span>
+    <div class="mselect">
+      <button type="button" class="ctl ms-btn" id="brandMSBtn">品牌:全部</button>
+      <div class="ms-panel hidden" id="brandMSPanel"></div>
+    </div>
+    <div class="mselect">
+      <button type="button" class="ctl ms-btn" id="keysMSBtn">键位:全部</button>
+      <div class="ms-panel hidden" id="keysMSPanel"></div>
+    </div>
+    <div class="mselect">
+      <button type="button" class="ctl ms-btn" id="wireMSBtn">无线:全部</button>
+      <div class="ms-panel hidden" id="wireMSPanel"></div>
+    </div>
+    <div class="mselect">
+      <button type="button" class="ctl ms-btn" id="saleMSBtn">出售:全部</button>
+      <div class="ms-panel hidden" id="saleMSPanel"></div>
+    </div>
+    </div>
+    <div class="pay-anchor tb-pay closed" id="payAnchor2">
+      <button type="button" class="tb-menu" id="btnPay2" title="付款码" aria-label="打开付款码"><svg viewBox="0 0 20 20" width="16" height="16" fill="currentColor" aria-hidden="true"><rect x="1" y="1" width="7" height="7" fill="none" stroke="currentColor" stroke-width="2"/><rect x="12" y="1" width="7" height="7" fill="none" stroke="currentColor" stroke-width="2"/><rect x="1" y="12" width="7" height="7" fill="none" stroke="currentColor" stroke-width="2"/><rect x="3.5" y="3.5" width="2" height="2"/><rect x="14.5" y="3.5" width="2" height="2"/><rect x="3.5" y="14.5" width="2" height="2"/><rect x="12" y="12" width="2" height="2"/><rect x="16" y="12" width="2" height="2"/><rect x="14" y="14" width="2" height="2"/><rect x="12" y="16" width="2" height="2"/><rect x="16" y="16" width="2" height="2"/></svg></button>
+    </div>
+    <button type="button" class="tb-menu closed" id="navBtn2" title="切换分类" aria-label="打开分类菜单"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+  </div>
+</div>
+
+<main>
+  <section id="cardsView" class="cards"></section>
+
+  <section id="tableView" class="table-wrap hidden">
+    <table>
+      <thead>
+        <tr>
+          <th class="sortable" data-key="编号">编号<span class="arr"></span></th>
+          <th class="sortable" data-key="品牌">品牌<span class="arr"></span></th>
+          <th class="sortable" data-key="型号">型号<span class="arr"></span></th>
+          <th>图片</th>
+          <th class="sortable" data-key="键位">键位<span class="arr"></span></th>
+          <th class="sortable" data-key="轴体">轴体<span class="arr"></span></th>
+          <th class="sortable" data-key="颜色">颜色<span class="arr"></span></th>
+          <th class="sortable" data-key="无线">无线<span class="arr"></span></th>
+          <th class="sortable" data-key="购买时间">购买时间<span class="arr"></span></th>
+          <th class="sortable" data-key="购买渠道">购买渠道<span class="arr"></span></th>
+          <th class="sortable" data-key="原价">购入价<span class="arr"></span></th>
+          <th class="sortable" data-key="闲置价格">闲置价格<span class="arr"></span></th>
+          <th class="sortable" data-key="折扣">折扣力度<span class="arr"></span></th>
+          <th data-key="原厂壳体">原厂壳体</th>
+          <th data-key="原厂键帽">原厂键帽</th>
+          <th>备注</th>
+        </tr>
+      </thead>
+      <tbody id="tbBody"></tbody>
+    </table>
+  </section>
+
+  <div id="emptyTip" class="empty hidden">😕 没有匹配的键盘,换个关键词试试</div>
+</main>
+
+<footer>
+  <div class="copy" style="color:#c6ccd8">此处禁止堆放垃圾，发现直接扔掉</div>
+</footer>
+
+<!-- 大图灯箱 -->
+<div id="lightbox" class="lb hidden">
+  <button class="lb-x" id="lbClose" title="关闭">×</button>
+  <button class="lb-nav prev" id="lbPrev" title="上一张">‹</button>
+  <figure>
+    <div class="lb-stage" id="lbStage"><img id="lbImg" alt="" draggable="false"></div>
+    <div class="lb-zoom">
+      <button type="button" id="lbMinus" title="缩小">−</button>
+      <span id="lbZoomVal" class="val">100%</span>
+      <button type="button" id="lbPlus" title="放大">＋</button>
+      <span class="sep"></span>
+      <button type="button" id="lbFit" class="txt" title="恢复适应窗口">适应</button>
+    </div>
+    <figcaption id="lbCap"></figcaption>
+    <div id="lbCapSub" class="lb-cap-sub"></div>
+    <div id="lbCapSub" class="lb-cap-sub"></div>
+  </figure>
+  <button class="lb-nav next" id="lbNext" title="下一张">›</button>
+</div>
+
+<div id="toast" class="hidden"></div>
+
+<script id="kb-data" type="application/json">
+[{"品牌":"ATK","型号":"U2 MINI","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"299","壳体购入价":"","键帽购入价":"","购买时间":"2025-12-30","购买渠道":"自营","闲置价格":"150","备注":"","已出售":true,"状态":"完成","编号":"01","缩略图":[],"原图":[]},{"品牌":"ATK","型号":"烈空 鸭嘴兽","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"423","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"200","备注":"","已出售":false,"编号":"02","缩略图":[],"原图":[]},{"品牌":"ATK","型号":"F1 Ultimate 大师版","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"427","壳体购入价":"","键帽购入价":"","购买时间":"2026-01-05","购买渠道":"范达尔","闲置价格":"200","备注":"","已出售":true,"状态":"完成","编号":"03","缩略图":[],"原图":[]},{"品牌":"ATK","型号":"烈空 X1 PRO","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"298","壳体购入价":"","键帽购入价":"","购买时间":"2026-02-12","购买渠道":"自营","闲置价格":"150","备注":"","已出售":true,"状态":"完成","编号":"04","缩略图":[],"原图":[]},{"品牌":"ENDGAME","型号":"OP1we","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"688","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"200","备注":"","已出售":false,"编号":"05","缩略图":[],"原图":[]},{"品牌":"ENDGAME","型号":"XM2we","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"593","壳体购入价":"","键帽购入价":"","购买时间":"2026-02-12","购买渠道":"自营","闲置价格":"200","备注":"","已出售":true,"状态":"完成","编号":"06","缩略图":[],"原图":[]},{"品牌":"ENDGAME","型号":"XM1R","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"471","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"100","备注":"","已出售":false,"编号":"07","缩略图":[],"原图":[]},{"品牌":"FANTECH","型号":"XD7v2","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"297","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"100","备注":"","已出售":false,"编号":"08","缩略图":[],"原图":[]},{"品牌":"FANTECH","型号":"XD3v3","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"399","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"150","备注":"","已出售":false,"编号":"09","缩略图":[],"原图":[]},{"品牌":"Fnatic","型号":"BOLT","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"245","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"100","备注":"","已出售":false,"编号":"10","缩略图":[],"原图":[]},{"品牌":"FinalMouse","型号":"波塞冬 S","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"1680","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"1499","备注":"","已出售":false,"编号":"11","缩略图":[],"原图":[]},{"品牌":"Glorious Series","型号":"One Pro","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"765","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"250","备注":"","已出售":false,"编号":"12","缩略图":[],"原图":[]},{"品牌":"HyperX","型号":"炽火","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"339","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"100","备注":"","已出售":false,"编号":"13","缩略图":[],"原图":[]},{"品牌":"HyperX","型号":"旋火","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"318","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"100","备注":"","已出售":false,"编号":"14","缩略图":[],"原图":[]},{"品牌":"HyperX","型号":"旋火2","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"568","壳体购入价":"","键帽购入价":"","购买时间":"2025-12-29","购买渠道":"自营","闲置价格":"150","备注":"","已出售":true,"状态":"完成","编号":"15","缩略图":[],"原图":[]},{"品牌":"IPI","型号":"奇","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"385","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"249","备注":"","已出售":false,"编号":"16","缩略图":[],"原图":[]},{"品牌":"IPI","型号":"飘88","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"216","壳体购入价":"","键帽购入价":"","购买时间":"2025-12-29","购买渠道":"自营","闲置价格":"100","备注":"","已出售":true,"状态":"完成","编号":"17","缩略图":[],"原图":[]},{"品牌":"IXILAB","型号":"X1","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"256","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"80","备注":"","已出售":false,"编号":"18","缩略图":[],"原图":[]},{"品牌":"IYX","型号":"Amber 35.8","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"234","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"80","备注":"","已出售":false,"编号":"19","缩略图":[],"原图":[]},{"品牌":"LAMZU","型号":"INCA","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"759","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"450","备注":"","已出售":false,"编号":"20","缩略图":[],"原图":[]},{"品牌":"LAMZU","型号":"亚特兰蒂斯 MINI 抹茶绿","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"645","壳体购入价":"","键帽购入价":"","购买时间":"2026-01-06","购买渠道":"范达尔","闲置价格":"300","备注":"","已出售":true,"状态":"完成","编号":"21","缩略图":[],"原图":[]},{"品牌":"LAMZU","型号":"亚特兰蒂斯 MINI 黑色","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"618","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"300","备注":"","已出售":false,"编号":"22","缩略图":[],"原图":[]},{"品牌":"LAMZU","型号":"亚特兰蒂斯 白色","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"584","壳体购入价":"","键帽购入价":"","购买时间":"2026-01-08","购买渠道":"范达尔","闲置价格":"249","备注":"","已出售":true,"状态":"完成","编号":"23","缩略图":[],"原图":[]},{"品牌":"LAMZU","型号":"Maya 红","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"852","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"400","备注":"","已出售":false,"编号":"24","缩略图":[],"原图":[]},{"品牌":"Lunafury","型号":"LUNA33","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"499","壳体购入价":"","键帽购入价":"","购买时间":"2026-01-12","购买渠道":"范达尔","闲置价格":"300","备注":"","已出售":true,"状态":"完成","编号":"25","缩略图":[],"原图":[]},{"品牌":"NINJUTSO","型号":"Sora V2","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"549","壳体购入价":"","键帽购入价":"","购买时间":"2026-02-12","购买渠道":"自营","闲置价格":"200","备注":"","已出售":true,"状态":"完成","编号":"26","缩略图":[],"原图":[]},{"品牌":"NINJUTSO","型号":"Sora","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"476","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"150","备注":"","已出售":false,"编号":"27","缩略图":[],"原图":[]},{"品牌":"PULSAR","型号":"TENZ签名版","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"729","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"400","备注":"","已出售":false,"编号":"28","缩略图":[],"原图":[]},{"品牌":"PULSAR","型号":"Zywoo联名款MINI","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"900","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"500","备注":"","已出售":false,"编号":"29","缩略图":[],"原图":[]},{"品牌":"PULSAR","型号":"X2H Acid Rewind MINI","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"1008","壳体购入价":"","键帽购入价":"","购买时间":"2026-01-08","购买渠道":"范达尔","闲置价格":"500","备注":"","已出售":true,"状态":"完成","编号":"30","缩略图":[],"原图":[]},{"品牌":"PULSAR","型号":"X2v2 MINI","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"799","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"400","备注":"","已出售":false,"编号":"31","缩略图":[],"原图":[]},{"品牌":"PULSAR","型号":"X2H Size1","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"922","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"400","备注":"","已出售":false,"编号":"32","缩略图":[],"原图":[]},{"品牌":"PWNAGE","型号":"曜","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"939","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"","备注":"","已出售":false,"编号":"33","缩略图":[],"原图":[]},{"品牌":"PWNAGE","型号":"BLG 限量款","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"1299","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"","备注":"","已出售":false,"编号":"34","缩略图":[],"原图":[]},{"品牌":"ROG","型号":"龙鳞2 Ace","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"997","壳体购入价":"","键帽购入价":"","购买时间":"2026-01-05","购买渠道":"范达尔","闲置价格":"500","备注":"","已出售":true,"状态":"完成","编号":"35","缩略图":[],"原图":[]},{"品牌":"ROG","型号":"月刃2 ACE","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"894","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"300","备注":"","已出售":false,"状态":"缺货","编号":"36","缩略图":[],"原图":[]},{"品牌":"ROG","型号":"龙鳞 Ace 黑","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"789","壳体购入价":"","键帽购入价":"","购买时间":"2025-12-29","购买渠道":"自营","闲置价格":"200","备注":"","已出售":true,"状态":"完成","编号":"37","缩略图":[],"原图":[]},{"品牌":"ROG","型号":"龙鳞Ace Mini","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"664","壳体购入价":"","键帽购入价":"","购买时间":"2025-12-29","购买渠道":"自营","闲置价格":"280","备注":"","已出售":true,"状态":"完成","编号":"38","缩略图":[],"原图":[]},{"品牌":"ROG","型号":"龙鳞 Ace 白","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"521","壳体购入价":"","键帽购入价":"","购买时间":"2025-12-31","购买渠道":"范达尔","闲置价格":"200","备注":"","已出售":true,"状态":"完成","编号":"39","缩略图":[],"原图":[]},{"品牌":"ROG","型号":"月刃AP","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"363","壳体购入价":"","键帽购入价":"","购买时间":"2026-01-06","购买渠道":"范达尔","闲置价格":"125","备注":"","已出售":true,"状态":"完成","编号":"40","缩略图":[],"原图":[]},{"品牌":"SKN","型号":"游鱼 Pro","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"277","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"100","备注":"","已出售":false,"编号":"41","缩略图":[],"原图":[]},{"品牌":"VGN","型号":"蜻蜓王","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"467","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"300","备注":"","已出售":false,"编号":"42","缩略图":[],"原图":[]},{"品牌":"VGN","型号":"蜻蜓F1 Pro","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"189","壳体购入价":"","键帽购入价":"","购买时间":"2025-12-31","购买渠道":"范达尔","闲置价格":"50","备注":"","已出售":true,"状态":"完成","编号":"43","缩略图":[],"原图":[]},{"品牌":"VGN","型号":"蜻蜓F1 Pro Max","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"199","壳体购入价":"","键帽购入价":"","购买时间":"2026-01-03","购买渠道":"范达尔","闲置价格":"50","备注":"","已出售":true,"状态":"完成","编号":"44","缩略图":[],"原图":[]},{"品牌":"VXE","型号":"MAJOR","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"326","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"150","备注":"","已出售":false,"编号":"45","缩略图":[],"原图":[]},{"品牌":"VXE","型号":"蜻蜓 R1 Pro MAX","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"198","壳体购入价":"","键帽购入价":"","购买时间":"2025-12-29","购买渠道":"自营","闲置价格":"80","备注":"","已出售":true,"状态":"完成","编号":"46","缩略图":[],"原图":[]},{"品牌":"WAIZOWL","型号":"OGM Cloud","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"446","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"","备注":"","已出售":false,"编号":"47","缩略图":[],"原图":[]},{"品牌":"WAIZOWL","型号":"OGM Cloud XS","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"519","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"","备注":"","已出售":false,"编号":"48","缩略图":[],"原图":[]},{"品牌":"WAIZOWL","型号":"OGM Pro v2 黑金","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"487","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"200","备注":"","已出售":false,"编号":"49","缩略图":[],"原图":[]},{"品牌":"WAIZOWL","型号":"OGM Pro v2 蓝白","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"488","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"200","备注":" ","已出售":false,"编号":"50","缩略图":[],"原图":[]},{"品牌":"Xtrfy","型号":"M8W","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"727","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"","备注":"","已出售":false,"编号":"51","缩略图":[],"原图":[]},{"品牌":"Xtrfy","型号":"M64 Pro","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"840","壳体购入价":"","键帽购入价":"","购买时间":"2026-01-07","购买渠道":"范达尔","闲置价格":"200","备注":"","已出售":true,"状态":"完成","编号":"52","缩略图":[],"原图":[]},{"品牌":"Xtrfy","型号":"M68W Pro","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"983","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"","备注":"","已出售":false,"编号":"53","缩略图":[],"原图":[]},{"品牌":"Xtrfy","型号":"M4w","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"469","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"","备注":"","已出售":false,"编号":"54","缩略图":[],"原图":[]},{"品牌":"Xtrfy","型号":"M42","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"208","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"","备注":"","已出售":false,"编号":"55","缩略图":[],"原图":[]},{"品牌":"ZOWIE GEAR","型号":"S2-DW","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"1072","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"","备注":"","已出售":false,"编号":"56","缩略图":[],"原图":[]},{"品牌":"ZOWIE GEAR","型号":"FK2-DW","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"1069","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"","备注":"","已出售":false,"编号":"57","缩略图":[],"原图":[]},{"品牌":"ZOWIE GEAR","型号":"U2","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"726","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"","备注":"","已出售":false,"编号":"58","缩略图":[],"原图":[]},{"品牌":"ZOWIE GEAR","型号":"EC3-CW","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"824","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"","备注":"","已出售":false,"编号":"59","缩略图":[],"原图":[]},{"品牌":"八位堂","型号":"Retro R8","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"528","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"249","备注":"","已出售":false,"编号":"60","缩略图":[],"原图":[]},{"品牌":"冰豹","型号":"魔幻豹 KONE PRO AIR","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"549","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"200","备注":"","已出售":false,"编号":"61","缩略图":[],"原图":[]},{"品牌":"达尔优","型号":"A950 Air 蝉翼版","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"297","壳体购入价":"","键帽购入价":"","购买时间":"2025-12-31","购买渠道":"范达尔","闲置价格":"80","备注":"","已出售":true,"状态":"完成","编号":"62","缩略图":[],"原图":[]},{"品牌":"达尔优","型号":"A980 Pro Max 黑","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"397","壳体购入价":"","键帽购入价":"","购买时间":"2025-12-31","购买渠道":"范达尔","闲置价格":"95","备注":"","已出售":true,"状态":"完成","编号":"63","缩略图":[],"原图":[]},{"品牌":"达尔优","型号":"A950 Pro","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"269","壳体购入价":"","键帽购入价":"","购买时间":"2025-12-29","购买渠道":"自营","闲置价格":"70","备注":"","已出售":true,"状态":"完成","编号":"64","缩略图":[],"原图":[]},{"品牌":"达尔优","型号":"A900","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"479","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"150","备注":"","已出售":false,"编号":"65","缩略图":[],"原图":[]},{"品牌":"达摩鲨","型号":"M3","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"199","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"50","备注":"","已出售":false,"编号":"66","缩略图":[],"原图":[]},{"品牌":"达摩鲨","型号":"M3 MICROPRO","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"387","壳体购入价":"","键帽购入价":"","购买时间":"2026-01-06","购买渠道":"范达尔","闲置价格":"150","备注":"","已出售":true,"状态":"完成","编号":"67","缩略图":[],"原图":[]},{"品牌":"达摩鲨","型号":"M3s Pro","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"275","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"80","备注":"","已出售":false,"编号":"68","缩略图":[],"原图":[]},{"品牌":"黑爵","型号":"AJ199","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"199","壳体购入价":"","键帽购入价":"","购买时间":"2025-12-31","购买渠道":"范达尔","闲置价格":"30","备注":"","已出售":true,"状态":"完成","编号":"69","缩略图":[],"原图":[]},{"品牌":"机械师","型号":"L9 X1","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"194","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"50","备注":"","已出售":false,"编号":"70","缩略图":[],"原图":[]},{"品牌":"机械师","型号":"L8 Air 星闪","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"298","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"100","备注":"","已出售":false,"编号":"71","缩略图":[],"原图":[]},{"品牌":"贱驴","型号":"RSR5","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"199","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"50","备注":"","已出售":false,"编号":"72","缩略图":[],"原图":[]},{"品牌":"酷冷至尊","型号":"天魁星","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"330","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"40","备注":"","已出售":false,"编号":"73","缩略图":[],"原图":[]},{"品牌":"雷柏","型号":"VT3S MAX","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"346","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"","备注":"","已出售":false,"编号":"74","缩略图":[],"原图":[]},{"品牌":"雷柏","型号":"VT0 Air MAX","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"299","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"200","备注":"","已出售":false,"编号":"75","缩略图":[],"原图":[]},{"品牌":"雷柏","型号":"VT9 MAX","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"309","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"","备注":"","已出售":false,"编号":"76","缩略图":[],"原图":[]},{"品牌":"雷柏","型号":"VT0 蓝色","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"199","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"100","备注":"","已出售":false,"编号":"77","缩略图":[],"原图":[]},{"品牌":"雷柏","型号":"VT1","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"198","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"","备注":"","已出售":false,"编号":"78","缩略图":[],"原图":[]},{"品牌":"雷柏","型号":"VT2 树莓粉","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"228","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"100","备注":"","已出售":false,"状态":"缺货","编号":"79","缩略图":[],"原图":[]},{"品牌":"雷柏","型号":"VT2 电驭紫","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"227","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"100","备注":"","已出售":false,"编号":"80","缩略图":[],"原图":[]},{"品牌":"雷柏","型号":"VT3","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"193","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"","备注":"","已出售":false,"编号":"81","缩略图":[],"原图":[]},{"品牌":"雷柏","型号":"VT7","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"178","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"90","备注":"","已出售":false,"编号":"82","缩略图":[],"原图":[]},{"品牌":"雷柏","型号":"VT3 PRO 一代","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"227","壳体购入价":"","键帽购入价":"","购买时间":"2026-01-05","购买渠道":"范达尔","闲置价格":"60","备注":"","已出售":true,"状态":"完成","编号":"83","缩略图":[],"原图":[]},{"品牌":"雷柏","型号":"VT1 Air Max 一代","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"296","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"70","备注":"","已出售":false,"编号":"84","缩略图":[],"原图":[]},{"品牌":"雷柏","型号":"VT9 一代","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"191","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"50","备注":"","已出售":false,"编号":"85","缩略图":[],"原图":[]},{"品牌":"雷蛇","型号":"毒蝰 mini se","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"2399","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"1799","备注":"","已出售":false,"编号":"86","缩略图":[],"原图":[]},{"品牌":"雷蛇","型号":"毒蝰 V2 专业版","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"1099","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"249","备注":"","已出售":false,"编号":"87","缩略图":[],"原图":[]},{"品牌":"雷蛇","型号":"毒蝰 V3 Pro","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"1290","壳体购入价":"","键帽购入价":"","购买时间":"2025-12-29","购买渠道":"自营","闲置价格":"500","备注":"","已出售":true,"状态":"完成","编号":"88","缩略图":[],"原图":[]},{"品牌":"雷蛇","型号":"毒蝰 V3 Pro 耿鬼版","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"1299","壳体购入价":"","键帽购入价":"","购买时间":"2025-12-31","购买渠道":"范达尔","闲置价格":"650","备注":"","已出售":true,"状态":"完成","编号":"89","缩略图":[],"原图":[]},{"品牌":"雷蛇","型号":"毒蝰 V3 极速版","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"489","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"范达尔","闲置价格":"150","备注":"","已出售":true,"状态":"完成","编号":"90","缩略图":[],"原图":[]},{"品牌":"雷蛇","型号":"炼狱蝰蛇 V3 Pro","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"885","壳体购入价":"","键帽购入价":"","购买时间":"2026-01-05","购买渠道":"自营","闲置价格":"300","备注":"","已出售":true,"状态":"完成","编号":"91","缩略图":[],"原图":[]},{"品牌":"雷蛇","型号":"毒蝰 8K 有线","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"256","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"自留","备注":"","已出售":false,"编号":"92","缩略图":[],"原图":[]},{"品牌":"雷蛇","型号":"八岐大蛇 V2","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"288","壳体购入价":"","键帽购入价":"","购买时间":"2026-02-10","购买渠道":"自营","闲置价格":"80","备注":"","已出售":true,"状态":"完成","编号":"93","缩略图":[],"原图":[]},{"品牌":"雷神","型号":"MLX 凌","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"298","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"200","备注":"","已出售":false,"编号":"94","缩略图":[],"原图":[]},{"品牌":"雷神","型号":"ML8 星闪","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"189","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"80","备注":"","已出售":false,"编号":"95","缩略图":[],"原图":[]},{"品牌":"雷神","型号":"ML903","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"239","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"85","备注":"","已出售":false,"编号":"96","缩略图":[],"原图":[]},{"品牌":"罗技","型号":"GPW4 小狗","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"1195","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"600","备注":"","已出售":false,"编号":"97","缩略图":[],"原图":[]},{"品牌":"罗技","型号":"G PRO X SUPERLIGHT 2","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"792","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"找不着了","备注":"","已出售":false,"状态":"缺货","编号":"98","缩略图":[],"原图":[]},{"品牌":"罗技","型号":"G PRO X SUPERLIGHT","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"609","壳体购入价":"","键帽购入价":"","购买时间":"2025-12-29","购买渠道":"自营","闲置价格":"200","备注":"","已出售":true,"状态":"完成","编号":"99","缩略图":[],"原图":[]},{"品牌":"罗技","型号":"G502","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"339","壳体购入价":"","键帽购入价":"","购买时间":"2025-12-31","购买渠道":"自营","闲置价格":"50","备注":"","已出售":true,"状态":"完成","编号":"100","缩略图":[],"原图":[]},{"品牌":"罗技","型号":"G703","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"337","壳体购入价":"","键帽购入价":"","购买时间":"2025-12-29","购买渠道":"自营","闲置价格":"50","备注":"","已出售":true,"状态":"完成","编号":"101","缩略图":[],"原图":[]},{"品牌":"罗技","型号":"G603","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"269","壳体购入价":"","键帽购入价":"","购买时间":"2025-12-31","购买渠道":"范达尔","闲置价格":"50","备注":"","已出售":true,"状态":"完成","编号":"102","缩略图":[],"原图":[]},{"品牌":"罗技","型号":"MX Anywhere 2S","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"499","壳体购入价":"","键帽购入价":"","购买时间":"2025-12-30","购买渠道":"自营","闲置价格":"20","备注":"","已出售":true,"状态":"完成","编号":"103","缩略图":[],"原图":[]},{"品牌":"罗技","型号":"G903","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"584","壳体购入价":"","键帽购入价":"","购买时间":"2025-12-29","购买渠道":"自营","闲置价格":"50","备注":"","已出售":true,"状态":"完成","编号":"104","缩略图":[],"原图":[]},{"品牌":"罗技","型号":"G303","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"","备注":"","已出售":false,"编号":"105","缩略图":[],"原图":[]},{"品牌":"洛斐","型号":"HYPACE隼","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"795","壳体购入价":"","键帽购入价":"","购买时间":"2026-01-05","购买渠道":"范达尔","闲置价格":"400","备注":"","已出售":true,"状态":"完成","编号":"106","缩略图":[],"原图":[]},{"品牌":"蚂蚁电竞","型号":"AGM535R","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"328","壳体购入价":"","键帽购入价":"","购买时间":"2025-12-29","购买渠道":"自营","闲置价格":"50","备注":"","已出售":true,"状态":"完成","编号":"107","缩略图":[],"原图":[]},{"品牌":"迈从","型号":"M7 Pro","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"228","壳体购入价":"","键帽购入价":"","购买时间":"2026-01-06","购买渠道":"范达尔","闲置价格":"60","备注":"","已出售":true,"状态":"完成","编号":"108","缩略图":[],"原图":[]},{"品牌":"迈从","型号":"G3 Ultra","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"217","壳体购入价":"","键帽购入价":"","购买时间":"2026-01-06","购买渠道":"范达尔","闲置价格":"60","备注":"","已出售":true,"状态":"完成","编号":"109","缩略图":[],"原图":[]},{"品牌":"迈从","型号":"AX5","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"299","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"100","备注":"","已出售":false,"编号":"110","缩略图":[],"原图":[]},{"品牌":"迈从","型号":"A5 Pro Max","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"194","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"60","备注":"","已出售":false,"编号":"111","缩略图":[],"原图":[]},{"品牌":"漫步者","型号":"G3M Pro","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"174","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"50","备注":"","已出售":false,"编号":"112","缩略图":[],"原图":[]},{"品牌":"摩豹","型号":"夜刃 X6 MAX","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"299","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"80","备注":"","已出售":false,"编号":"113","缩略图":[],"原图":[]},{"品牌":"赛洛斯","型号":"V6","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"348","壳体购入价":"","键帽购入价":"","购买时间":"2026-01-05","购买渠道":"范达尔","闲置价格":"150","备注":"","已出售":true,"状态":"完成","编号":"114","缩略图":[],"原图":[]},{"品牌":"赛洛斯","型号":"V8","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"354","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"150","备注":"","已出售":false,"编号":"115","缩略图":[],"原图":[]},{"品牌":"赛睿","型号":"Prime mini","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"466","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"100","备注":"","已出售":false,"编号":"116","缩略图":[],"原图":[]},{"品牌":"赛睿","型号":"Prime","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"862","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"100","备注":"","已出售":false,"编号":"117","缩略图":[],"原图":[]},{"品牌":"瓦尔基里","型号":"VK M3 Pro 梅林","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"297","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"100","备注":"","已出售":false,"编号":"118","缩略图":[],"原图":[]},{"品牌":"瓦尔基里","型号":"VK M2 梅林","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"198","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"70","备注":"","已出售":false,"编号":"119","缩略图":[],"原图":[]},{"品牌":"瓦尔基里","型号":"M1 赵芸","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"197","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"70","备注":"","已出售":false,"编号":"120","缩略图":[],"原图":[]},{"品牌":"万灵","型号":"花兽 天狐","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"695","壳体购入价":"","键帽购入价":"","购买时间":"2025-12-31","购买渠道":"范达尔","闲置价格":"300","备注":"","已出售":true,"状态":"完成","编号":"121","缩略图":[],"原图":[]},{"品牌":"小米","型号":"X1","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"297","壳体购入价":"","键帽购入价":"","购买时间":"2026-01-08","购买渠道":"范达尔","闲置价格":"80","备注":"","已出售":true,"状态":"完成","编号":"122","缩略图":[],"原图":[]},{"品牌":"玄派","型号":"M6","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"479","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"249","备注":"","已出售":false,"编号":"123","缩略图":[],"原图":[]},{"品牌":"因科特","型号":"零39 Pro","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"339","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"150","备注":"","已出售":false,"编号":"124","缩略图":[],"原图":[]},{"品牌":"因科特","型号":"零29","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"249","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"自用","备注":"","已出售":false,"编号":"125","缩略图":[],"原图":[]},{"品牌":"因科特","型号":"Zero Pro","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"400","壳体购入价":"","键帽购入价":"","购买时间":"2025-12-31","购买渠道":"范达尔","闲置价格":"100","备注":"","已出售":true,"状态":"完成","编号":"126","缩略图":[],"原图":[]},{"品牌":"因科特","型号":"Two Pro","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"317","壳体购入价":"","键帽购入价":"","购买时间":"2025-12-31","购买渠道":"范达尔","闲置价格":"80","备注":"","已出售":true,"状态":"完成","编号":"127","缩略图":[],"原图":[]},{"品牌":"因科特","型号":"HPC02","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"413","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"100","备注":"","已出售":false,"编号":"128","缩略图":[],"原图":[]},{"品牌":"英菲克","型号":"INX 长续航版","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"229","壳体购入价":"","键帽购入价":"","购买时间":"2026-01-22","购买渠道":"范达尔","闲置价格":"50","备注":"","已出售":true,"状态":"完成","编号":"129","缩略图":[],"原图":[]},{"品牌":"皂品","型号":"Z2 mini","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"337","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"150","备注":"","已出售":false,"编号":"130","缩略图":[],"原图":[]},{"品牌":"皂品","型号":"Z1 PRO","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"195","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"100","备注":"找不着了","已出售":false,"状态":"缺货","编号":"131","缩略图":[],"原图":[]},{"品牌":"拯救者","型号":"M6X Pro","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"","轴体":"","颜色":"","无线":"","购入价":"144","壳体购入价":"","键帽购入价":"","购买时间":"","购买渠道":"","闲置价格":"30","备注":"","已出售":false,"状态":"缺货","编号":"132","缩略图":[],"原图":[]}]
+</script>
+
+<script>
+(function(){
+'use strict';
+
+var GEN_DATE = '2026-09-09 05:01';
+var FIELDS = ['品牌','型号','键位','轴体','颜色','无线','购入价','购买时间','购买渠道','闲置价格'];
+
+var DEFAULT_DATA = JSON.parse(document.getElementById('kb-data').textContent);
+var DATA = [];
+var DISPLAY = [];
+var query = '';
+var sortKey = '编号';
+var sortDir = 'asc';
+var fBrand = new Set();   /* 品牌多选筛选 */
+var fKeys = new Set();    /* 键位多选筛选 */
+var fWire = '';           /* 无线单选筛选(''=全部) */
+var fSale = '';           /* 出售情况筛选(''=全部,'0'未售,'1'已售) */
+var SORT_LABELS = { '编号':'默认', '原价':'购入价', '购买时间':'购买时间', '闲置价格':'闲置价格', '折扣':'折扣力度' };
+function $(s){ return document.querySelector(s); }
+function esc(s){
+  return String(s==null?'':s).replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+function padId(n){ return String(n).padStart(2,'0'); }
+
+var COPY_SVG = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+function copyText(t){
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    return navigator.clipboard.writeText(t).then(function(){ return true; }).catch(function(){ return legacyCopy(t); });
+  }
+  return Promise.resolve(legacyCopy(t));
+}
+function legacyCopy(t){
+  var ta = document.createElement('textarea');
+  ta.value = t;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  var ok = false;
+  try{ ok = document.execCommand('copy'); }catch(e){}
+  ta.remove();
+  return ok;
+}
+function copyItemInfo(btn){
+  var id = btn.getAttribute('data-id');
+  var item = null;
+  for(var i=0; i<DATA.length; i++){
+    if(DATA[i]['编号'] === id){ item = DATA[i]; break; }
+  }
+  if(!item) return;
+  var text = '#' + str(item['编号']) + ' ' + str(item['品牌']) + ' ' + str(item['型号']);
+  copyText(text).then(function(ok){
+    toast(ok ? '已复制:' + text : '复制失败,请手动复制');
+  });
+}
+/* 常用汉字拼音首字母表(用于品牌/型号按首字母排序,未收录字排在字母之后) */
+var PY_INIT_MAP = (function(){
+  var t = {
+    a:'阿啊安奥',
+    b:'不白北本冰豹柏倍邦百宝贝奔比布',
+    c:'春长磁橙晨诚川崔超',
+    d:'杜达电东地大低冬德丹迪帝鼎',
+    f:'腹风凤飞方芬丰福',
+    g:'高光钢骨谷果冠国歌戈',
+    h:'黑红灰火海河湖华幻慧汉航豪虹鸿',
+    j:'金江静佳捷极加俊杰君嘉剑晶坚聚',
+    k:'凯空宽可科卡',
+    l:'狼罗蓝雷龙灵利鹿绿朗立乐联猎麟',
+    m:'米梦明幂马猫茂曼美麦木慕',
+    n:'宁南诺尼奴农',
+    p:'派品普鹏平朋佩',
+    q:'前青轻奇器强琴清秋群启千潜',
+    r:'日睿若然荣忍',
+    s:'山圣神水三世士双尚少深十狮闪顺松森',
+    t:'天铁铜桃太泰陶同图甜',
+    w:'物微王无文万卫温沃武舞',
+    x:'新小星雪幸心欣鑫兄雄玄西夏修秀',
+    y:'银月幽优一亿义意因音英影永佑宇雨语燕阳扬洋业野夜鹰艺逸易',
+    z:'芝之中至志智卓子紫珍真正织直追'
+  };
+  var map = {};
+  Object.keys(t).forEach(function(k){
+    t[k].split('').forEach(function(ch){ map[ch] = k; });
+  });
+  return map;
+})();
+function brandFirstLetter(v){
+  var s = str(v).trim();
+  if(!s) return '\uffff';
+  var ch = s.charAt(0);
+  if((ch >= 'a' && ch <= 'z') || (ch >= '0' && ch <= '9')) return ch;
+  if(ch >= 'A' && ch <= 'Z') return ch.toLowerCase();
+  if(PY_INIT_MAP[ch]) return PY_INIT_MAP[ch];
+  return '\ufffe';
+}
+/* 按首字母排;首字母相同时中文按拼音、拉丁按字母 */
+function cmpBrand(x, y){
+  var ka = brandFirstLetter(x), kb = brandFirstLetter(y);
+  if(ka !== kb) return ka < kb ? -1 : 1;
+  return str(x).trim().localeCompare(str(y).trim(), 'zh-Hans-CN');
+}
+/* 编号按品牌首字母排序后重新分配,同品牌内按型号排 */
+function orderByBrand(items){
+  var arr = items.slice().sort(function(a, b){
+    var c = cmpBrand(a['品牌'], b['品牌']);
+    if(c !== 0) return c;
+    return cmpBrand(a['型号'], b['型号']);
+  });
+  arr.forEach(function(it, i){ it['编号'] = padId(i+1); });
+  return arr;
+}
+function money(n){
+  n = Number(n);
+  if(!isFinite(n)) return null;
+  return n.toLocaleString('zh-CN');
+}
+function str(v){ return v==null ? '' : String(v); }
+function normWireless(v){
+  v = str(v).trim();
+  if(!v) return '';
+  if(/^(是|1|true|无线|双模|三模|2\.4g|蓝牙)$/i.test(v)) return '是';
+  if(/^(否|0|false|无|有线)$/i.test(v)) return '否';
+  return v;
+}
+
+/* ---------- 图片(相对路径,懒加载) ---------- */
+var NOIMG_SRC = '../资源图/暂无图片.png';
+function thumbsOf(item){ return item['缩略图'] || []; }
+function origsOf(item){ return item['原图'] || []; }
+/* 图片加载完成渐显;加载失败换成占位图 */
+document.addEventListener('load', function(e){
+  var t = e.target;
+  if(t && t.tagName === 'IMG') t.classList.add('ld');
+}, true);
+document.addEventListener('error', function(e){
+  var t = e.target;
+  if(t && t.tagName === 'IMG' && !t.dataset.noimg){ t.dataset.noimg = '1'; t.src = NOIMG_SRC; }
+}, true);
+
+
+/* ---------- 排序与筛选 ---------- */
+function num(v){
+  var s = str(v).trim();
+  if(s==='') return null;
+  var n = Number(String(s).replace(/%\s*$/, ''));   /* 兼容"80%"这类百分比文本 */
+  return isFinite(n) ? n : null;
+}
+var SORT_TYPE = {
+  '编号':'n', '键位':'n', '原价':'n', '闲置价格':'n',
+  '无线':'wire', '购买时间':'date', '折扣':'off',
+  '品牌':'brand', '型号':'brand', '轴体':'s', '颜色':'s', '购买渠道':'s'
+};
+function sortVal(item, key){
+  var s;
+  switch(SORT_TYPE[key]){
+    case 'n':    return num(item[key]);
+    case 'wire': { var w = normWireless(item['无线']); return w==='是' ? 1 : (w==='否' ? 0 : null); }
+    case 'date': { s = str(item['购买时间']).trim(); return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : null; }
+    case 'off':  { var p = num(item['闲置价格']), o = calcTotalCost(item);
+                   return (p!==null && o>0 && p<o) ? 1 - p/o : null; }
+    default:     { s = str(item[key]).trim(); return s || null; }
+  }
+}
+function hasImage(item){ return origsOf(item).length > 0; }
+function sortComparator(){
+  var type = SORT_TYPE[sortKey] || 's';
+  return function(a, b){
+    /* 已出售永远置底 */
+    var sa = a['已出售'] ? 1 : 0, sb = b['已出售'] ? 1 : 0;
+    if(sa !== sb) return sa - sb;
+    /* 没有图片的键盘排最后(编号不变,只是位置靠后) */
+    var ha = hasImage(a), hb = hasImage(b);
+    if(ha !== hb) return ha ? -1 : 1;
+    if(type === 'brand'){
+      var ba = str(a[sortKey]).trim(), bb = str(b[sortKey]).trim();
+      if(ba==='' && bb==='') return 0;
+      if(ba==='') return 1;
+      if(bb==='') return -1;
+      return sortDir==='desc' ? -cmpBrand(ba, bb) : cmpBrand(ba, bb);
+    }
+    var x = sortVal(a, sortKey), y = sortVal(b, sortKey);
+    if(x===null && y===null) return 0;
+    if(x===null) return 1;   /* 缺失值永远排最后 */
+    if(y===null) return -1;
+    var c = (type==='n') ? (x - y) : String(x).localeCompare(String(y), 'zh-Hans-CN');
+    return sortDir==='desc' ? -c : c;
+  };
+}
+function renderAll(){
+  DISPLAY = DATA.slice().sort(sortComparator());
+  renderCards();
+  renderTable();
+  updateSortIndicators();
+}
+function updateSortIndicators(){
+  document.querySelectorAll('#tableView th.sortable').forEach(function(th){
+    var on = th.getAttribute('data-key') === sortKey;
+    th.classList.toggle('active', on);
+    th.querySelector('.arr').textContent = on ? (sortDir==='asc' ? '▲' : '▼') : '';
+  });
+}
+function setSort(key, dir){
+  sortKey = key;
+  sortDir = dir;
+  renderAll();
+  applyFilter();
+  updateSortBtn();
+  buildSinglePanel('sortMSPanel', Object.keys(SORT_LABELS).map(function(k){ return {v:k, label:SORT_LABELS[k]}; }), sortKey);
+}
+function updateSortBtn(){
+  $('#sortMSBtn').textContent = '排序:' + (SORT_LABELS[sortKey] || '默认');
+  $('#dirBtn').textContent = sortDir==='asc' ? '▲' : '▼';
+}
+function uniq(key){
+  var seen = {}, out = [];
+  DATA.forEach(function(it){
+    var v = str(it[key]).trim();
+    if(v && !seen[v]){ seen[v] = 1; out.push(v); }
+  });
+  return out;
+}
+function buildPanel(panelId, options, checkedSet){
+  var html = '<div class="ms-actions">'
+           + '<button type="button" class="ms-all" data-act="all">全选</button>'
+           + '<button type="button" class="ms-all" data-act="none">清除</button>'
+           + '</div>';
+  html += options.map(function(op){
+    return '<label><input type="checkbox" value="'+esc(op.v)+'"'+(checkedSet.has(op.v)?' checked':'')+'> '+esc(op.label)+'</label>';
+  }).join('');
+  document.getElementById(panelId).innerHTML = html;
+}
+function updateMsBtn(btnId, prefix, set){
+  var btn = document.getElementById(btnId);
+  if(!set.size){ btn.textContent = prefix + ':全部'; return; }
+  var arr = Array.from(set);
+  btn.textContent = (arr.length > 2)
+    ? prefix + ':已选 ' + arr.length + ' 项'
+    : prefix + ':' + arr.join('、');
+}
+function closeAllPanels(){
+  document.querySelectorAll('.ms-panel').forEach(function(p){ p.classList.add('hidden'); });
+  var sg = document.querySelector('.sort-group');
+  if(sg) sg.classList.remove('open');
+}
+var payCloseT = null;
+function payCloseDone(ev){
+  /* 只认关闭动画,避免误吞打开动画的 animationend */
+  if(ev && ev.animationName !== 'popOut' && ev.animationName !== 'popOutUp') return;
+  cancelPayClose();
+  var pop = $('#payModal');
+  pop.classList.add('hidden');
+  pop.classList.remove('closing');
+}
+function cancelPayClose(){
+  if(payCloseT != null){ clearTimeout(payCloseT); payCloseT = null; }
+  $('#payModal').removeEventListener('animationend', payCloseDone);
+}
+function hidePay(){
+  var pop = $('#payModal');
+  if(pop.classList.contains('hidden') || pop.classList.contains('closing')) return;
+  pop.classList.add('closing');
+  pop.addEventListener('animationend', payCloseDone);
+  payCloseT = setTimeout(function(){ payCloseDone(); }, 400); /* 兜底 */
+}
+function fitPayNote(){
+  var n = document.getElementById('payNote');
+  if(!n) return;
+  n.style.fontSize = '';
+  var size = 15;
+  while(size > 9 && n.scrollWidth > n.clientWidth + 1){
+    size -= 0.5;
+    n.style.fontSize = size + 'px';
+  }
+}
+var searchOpen = false;
+function openSearch(){
+  searchOpen = true;
+  $('#searchWrap').classList.add('open');
+  setTimeout(function(){ $('#search').focus(); }, 150);
+}
+function closeSearch(){
+  var inp = $('#search');
+  if(searchOpen){
+    searchOpen = false;
+    $('#searchWrap').classList.remove('open');
+    $('#searchBtn').classList.remove('open');
+  }
+  if(inp.value !== '' || query){
+    inp.value = '';
+    query = '';
+    applyFilter();
+  }
+}
+function buildSinglePanel(panelId, options, currentV){
+  var el = document.getElementById(panelId);
+  el.innerHTML = options.map(function(o){
+    return '<button type="button" class="ms-opt'+(o.v===currentV?' on':'')+'" data-v="'+esc(o.v)+'">'+esc(o.label)+'</button>';
+  }).join('');
+}
+function buildSalePanel(){
+  var saleOpts;
+  if(FILTER_CFG.saleFrom === 'status'){
+    var seen = {};
+    DATA.forEach(function(it){
+      var v = str(it['状态']).trim();
+      if(v) seen[v] = 1;
+    });
+    saleOpts = [{v:'',label:'全部'},{v:'__none__',label:'未出售'}];
+    Object.keys(seen).sort().forEach(function(v){
+      saleOpts.push({v:v, label: v === '完成' ? '已出售' : v});
+    });
+  }else{
+    saleOpts = [{v:'',label:'全部'},{v:'0',label:'未出售'},{v:'1',label:'已出售'}];
+  }
+  buildSinglePanel('saleMSPanel', saleOpts, fSale);
+}
+function populateFilterOptions(){
+  var brands = uniq('品牌').sort(function(a,b){ return a.localeCompare(b, 'zh-Hans-CN'); });
+  Array.from(fBrand).forEach(function(v){ if(brands.indexOf(v)<0) fBrand.delete(v); });
+  buildPanel('brandMSPanel', brands.map(function(v){ return {v:v, label:v}; }), fBrand);
+  updateMsBtn('brandMSBtn', '品牌', fBrand);
+
+  var keys = uniq('键位').sort(function(a,b){ return (parseFloat(a)||0) - (parseFloat(b)||0); });
+  Array.from(fKeys).forEach(function(v){ if(keys.indexOf(v)<0) fKeys.delete(v); });
+  buildPanel('keysMSPanel', keys.map(function(v){ return {v:v, label:v}; }), fKeys);
+  updateMsBtn('keysMSBtn', '键位', fKeys);
+
+  buildSinglePanel('sortMSPanel', Object.keys(SORT_LABELS).map(function(k){ return {v:k, label:SORT_LABELS[k]}; }), sortKey);
+  buildSinglePanel('wireMSPanel', [{v:'',label:'全部'},{v:'是',label:'仅无线'},{v:'否',label:'仅有线'}], fWire);
+  buildSalePanel();
+}
+
+/* ---------- 渲染:卡片 ---------- */
+function chipsHtml(item){
+  var chips = [];
+  var keys = str(item['键位']).trim();
+  if(keys) chips.push('<span class="chip">'+esc(keys)+'</span>');
+  if(str(item['轴体']).trim()) chips.push('<span class="chip">'+esc(item['轴体'])+'</span>');
+  if(str(item['颜色']).trim()) chips.push('<span class="chip">'+esc(item['颜色'])+'</span>');
+  var w = normWireless(item['无线']);
+  if(w==='是') chips.push('<span class="chip">无线</span>');
+  else if(w==='否') chips.push('<span class="chip">有线</span>');
+  else if(w) chips.push('<span class="chip yes">'+esc(w)+'</span>');
+  return chips.join('');
+}
+function priceHtml(item){
+  var p = str(item['闲置价格']).trim();
+  var out = '';
+  if(p!=='' && isFinite(Number(p))){
+    out += '<div class="p-main"><span class="cur"><span class="yen">¥</span><i class="num">'+esc(money(p))+'</i></span>';
+    var offv = calcOffPct(item);
+    if(offv !== null){
+      out += '<span class="off">-'+offv+'%</span>';
+    }
+    out += '</div>';
+  }else if(p !== ''){
+    out += '<div class="p-main"><span class="cur">'+esc(p)+'</span></div>';
+  }else{
+    out = '<div class="p-main"><span class="cur">面议</span></div>';
+  }
+  var buys = [];
+  ['购入价','壳体购入价','键帽购入价'].forEach(function(k){
+    var v = str(item[k]).trim();
+    if(v!=='' && isFinite(Number(v))) buys.push(esc(money(v)));
+  });
+  if(buys.length){
+    out += '<div class="orig">购入价:'+buys.join('+')+'</div>';
+  }
+  return out;
+}
+function calcTotalCost(item){
+  var total = 0;
+  ['购入价','壳体购入价','键帽购入价'].forEach(function(k){
+    var n = Number(str(item[k]).trim());
+    if(isFinite(n) && n > 0) total += n;
+  });
+  return total;
+}
+function calcOffPct(item){
+  var p = Number(str(item['闲置价格']).trim());
+  var total = calcTotalCost(item);
+  if(!total || !isFinite(p) || p <= 0 || p >= total) return null;
+  return Math.round((1 - p/total) * 100);
+}
+function comboHtml(item){
+  var parts = [];
+  ['壳体','键帽'].forEach(function(k){
+    var v = str(item[k]).trim();
+    if(v && v !== '无') parts.push(v);
+  });
+  return parts.length ? ' <span class="g">+ '+esc(parts.join(' + '))+'</span>' : '';
+}
+function metaHtml(item){
+  if(FILTER_CFG.cardMeta === 'status'){
+    var s = str(item['状态']).trim();
+    return (s && !item['已出售']) ? '<span class="st-tag">'+esc(s)+'</span>' : '';
+  }
+  return esc(item['购买渠道'])+'<br>'+esc(item['购买时间']);
+}
+function memoHtml(item){
+  var v = str(item['备注']).trim();
+  return v ? '<div class="memo">'+esc(v)+'</div>' : '';
+}
+function renderCards(){
+  $('#cardsView').innerHTML = DISPLAY.map(function(item){
+    var id = item['编号'];
+    return '<article class="card'+(item['已出售']?' sold':'')+'" data-id="'+esc(id)+'">'
+      + '<div class="card-img" id="ci-'+esc(id)+'"></div>'
+      + '<div class="card-strip" id="cs-'+esc(id)+'"></div>'
+      + '<div class="card-body">'
+      + '<div class="brand">'+esc(item['品牌'])+'</div>'
+      + '<div class="model-row"><h3 class="model">'+esc(item['型号'])+comboHtml(item)+'</h3>'
+      + '<button type="button" class="copy-btn" data-id="'+esc(id)+'" title="复制编号、品牌、型号">'+COPY_SVG+'</button></div>'
+      + memoHtml(item)
+      + '<div class="chips">'+chipsHtml(item)+'</div>'
+      + '<div class="card-foot"><div>'+priceHtml(item)+'</div>'
+      + '<div class="meta">'+metaHtml(item)+'</div>'
+      + '</div></div></article>';
+  }).join('');
+  DATA.forEach(function(it){ fillCardImages(it); });
+}
+function fillCardImages(item){
+  var id = item['编号'];
+  var box = document.getElementById('ci-'+id);
+  if(!box) return;
+  var thumbs = thumbsOf(item);
+  var badge = '<span class="badge">#'+esc(id)+'</span>';
+  if(thumbs.length){
+    box.classList.remove('no-img');
+    box.title = '';
+    var count = thumbs.length>1 ? '<span class="count">'+thumbs.length+' 张</span>' : '';
+    box.innerHTML = '<img class="main" src="'+esc(thumbs[0])+'" alt="" loading="lazy" decoding="async">' + badge + count;
+    box.onclick = function(){ openOriginal(item, 0); };
+  }else{
+    box.innerHTML = '<img class="main noimg-main" src="'+NOIMG_SRC+'" alt="">' + badge;
+    box.classList.add('no-img');
+    box.title = '暂无图片';
+    box.onclick = null;
+  }
+  var strip = document.getElementById('cs-'+id);
+  if(strip){
+    strip.innerHTML = thumbs.length>1
+      ? thumbs.map(function(s,i){ return '<img src="'+esc(s)+'" data-i="'+i+'" alt="" loading="lazy" decoding="async">'; }).join('')
+      : '';
+    Array.prototype.forEach.call(strip.querySelectorAll('img'), function(t){
+      t.onclick = function(ev){
+        ev.stopPropagation();
+        openOriginal(item, Number(t.getAttribute('data-i')));
+      };
+    });
+  }
+}
+
+/* ---------- 渲染:表格 ---------- */
+function renderTable(){
+  $('#tbBody').innerHTML = DISPLAY.map(function(item){
+    var id = item['编号'];
+    var keys = str(item['键位']).trim();
+    var w = normWireless(item['无线']);
+    var wCell = w==='是' ? '<span class="w-yes" title="无线">✔</span>'
+              : w==='否' ? '<span class="w-no" title="有线">❌</span>'
+              : esc(w);
+    var p = str(item['闲置价格']).trim();
+    var o = str(item['购入价']).trim();
+    var priceCell = p==='' ? '面议' : (isFinite(Number(p)) ? '¥'+esc(money(p)) : esc(p));
+    var origCell = (o!=='' && isFinite(Number(o))) ? '<span class="price-cell orig-p">¥'+esc(money(o))+'</span>' : '';
+    var offv = calcOffPct(item);
+    var offCell = offv !== null ? '<span class="off">-'+offv+'%</span>' : '';
+    var stCell = '';
+    if(FILTER_CFG.showStatusCol){
+      var sv3 = str(item['状态']).trim();
+      stCell = '<td class="c-st">' + (sv3 === '完成' ? '<span class="st-done">已出售</span>'
+        : (sv3 ? '<span class="st-tag">'+esc(sv3)+'</span>' : '')) + '</td>';
+    }
+    var buyCell = calcTotalCost(item) > 0 ? '¥'+esc(money(String(calcTotalCost(item)))) : '';
+    var buyNames = {'购入价':'购入价','壳体购入价':'壳体','键帽购入价':'键帽'};
+    var buyParts = [];
+    ['购入价','壳体购入价','键帽购入价'].forEach(function(k){
+      var v = str(item[k]).trim();
+      if(v!=='' && isFinite(Number(v))) buyParts.push(buyNames[k]+'¥'+esc(money(v)));
+    });
+    var buyTitle = buyParts.join(' + ');
+    return '<tr data-id="'+esc(id)+'"'+(item['已出售']?' class="sold-tr"':'')+'>'
+      + '<td class="c-id">#'+esc(id)+'</td>'
+      + '<td>'+esc(item['品牌'])+'</td>'
+      + '<td class="c-model"><span class="mw"><span class="mt">'+esc(item['型号'])+'</span>'+comboHtml(item)
+      + '<button type="button" class="copy-btn" data-id="'+esc(id)+'" title="复制编号、品牌、型号">'+COPY_SVG+'</button></span></td>'
+      + '<td class="c-img" id="ti-'+esc(id)+'"><span class="noimg">—</span></td>'
+      + tdc('键位', '<td>'+esc(keys)+'</td>')
+      + tdc('轴体', '<td>'+esc(item['轴体'])+'</td>')
+      + tdc('颜色', '<td>'+esc(item['颜色'])+'</td>')
+      + tdc('无线', '<td>'+wCell+'</td>')
+      + tdc('购买时间', '<td>'+esc(item['购买时间'])+'</td>')
+      + tdc('购买渠道', '<td>'+esc(item['购买渠道'])+'</td>')
+      + '<td title="'+buyTitle+'">'+buyCell+'</td>'
+      + '<td class="price-cell">'+priceCell+'</td>'
+      + '<td class="c-off">'+offCell+'</td>'
+      + tdc('原厂壳体', '<td class="c-fac">'+str(item['原厂壳体']).trim()+'</td>')
+      + tdc('原厂键帽', '<td class="c-fac">'+str(item['原厂键帽']).trim()+'</td>')
+      + (FILTER_CFG.showStatusCol ? stCell : '')
+      + '<td class="c-fac c-memo">'+str(item['备注']).trim()+'</td>'
+      + '</tr>';
+  }).join('');
+  DATA.forEach(function(it){ fillTableThumb(it); });
+}
+/* 打开原图(网络路径,点击时才加载) */
+function openOriginal(item, i){
+  if(!origsOf(item).length) return;
+  openLightbox(item, i);
+}
+function fillTableThumb(item){
+  var cell = document.getElementById('ti-'+item['编号']);
+  if(!cell) return;
+  var src = thumbsOf(item)[0] || '';
+  if(src){
+    cell.innerHTML = '<img src="'+esc(src)+'" alt="" loading="lazy" decoding="async">';
+    cell.style.cursor = '';
+    cell.title = '';
+    cell.onclick = function(){ openOriginal(item, 0); };
+  }else{
+    cell.innerHTML = '<span class="noimg">—</span>';
+    cell.style.cursor = '';
+    cell.title = '暂无图片';
+    cell.onclick = null;
+  }
+}
+
+/* ---------- 搜索过滤 ---------- */
+function applyFilter(){
+  var q = query.trim().toLowerCase();
+  var visible = 0;
+  DATA.forEach(function(item){
+    if(!item._search){
+      item._search = FIELDS.concat(['编号']).map(function(k){ return str(item[k]); }).join(' ').toLowerCase();
+    }
+    var hit = !q || item._search.indexOf(q)>=0;
+    if(hit && fBrand.size && !fBrand.has(str(item['品牌']).trim())) hit = false;
+    if(hit && fKeys.size && !fKeys.has(str(item['键位']).trim())) hit = false;
+    if(hit && fWire && normWireless(item['无线']) !== fWire) hit = false;
+    if(hit && fSale !== ''){
+      if(FILTER_CFG.saleFrom === 'status'){
+        var sval = str(item['状态']).trim();
+        if(fSale === '__none__' ? sval !== '' : sval !== fSale) hit = false;
+      }else if((item['已出售'] ? '1' : '0') !== fSale){
+        hit = false;
+      }
+    }
+    var card = document.querySelector('.card[data-id="'+item['编号']+'"]');
+    if(card) card.classList.toggle('hidden', !hit);
+    var row = document.querySelector('#tbBody tr[data-id="'+item['编号']+'"]');
+    if(row) row.style.display = hit ? '' : 'none';
+    if(hit) visible++;
+  });
+  $('#emptyTip').classList.toggle('hidden', visible>0);
+}
+
+/* ---------- 大图缩放 ---------- */
+var lbz = {z:1, tx:0, ty:0};
+function applyZoom(){
+  var img = $('#lbImg');
+  img.style.transform = lbz.z > 1 ? 'translate('+lbz.tx+'px,'+lbz.ty+'px) scale('+lbz.z+')' : '';
+  /* 只有放大时才提升合成层,避免常驻大纹理拖累滚动 */
+  img.style.willChange = lbz.z > 1 ? 'transform' : 'auto';
+  $('#lbStage').classList.toggle('zoomed', lbz.z > 1);
+  $('#lbZoomVal').textContent = Math.round(lbz.z*100) + '%';
+}
+function resetZoom(){ lbz = {z:1, tx:0, ty:0}; applyZoom(); }
+function zoomAt(cx, cy, factor){
+  var st = $('#lbStage'), r = st.getBoundingClientRect();
+  var nz = Math.min(10, Math.max(1, lbz.z * factor));
+  if(nz === lbz.z){
+    if(nz === 1){ lbz.tx = 0; lbz.ty = 0; applyZoom(); }
+    return;
+  }
+  var px = cx - (r.left + r.width/2), py = cy - (r.top + r.height/2);
+  var k = nz / lbz.z;
+  lbz.tx = px - (px - lbz.tx) * k;
+  lbz.ty = py - (py - lbz.ty) * k;
+  lbz.z = nz;
+  applyZoom();
+}
+function zoomCenter(factor){
+  var r = $('#lbStage').getBoundingClientRect();
+  zoomAt(r.left + r.width/2, r.top + r.height/2, factor);
+}
+
+/* ---------- 灯箱 ---------- */
+var LB = {list:[], idx:0, title:''};
+function openLightbox(item, i, listOverride){
+  var list = listOverride || origsOf(item);
+  if(!list.length) return;
+  LB = {item:item, list:list, idx:Math.min(i, list.length-1), title:'#'+item['编号']+' · '+str(item['品牌'])+' '+str(item['型号'])};
+  resetZoom();
+  $('#lightbox').classList.remove('hidden');
+  showLb();
+}
+function showLb(){
+  var img = $('#lbImg');
+  img.src = LB.list[LB.idx];
+  img.onload = fitStage;
+  if(img.complete && img.naturalWidth) fitStage();
+  $('#lbCap').textContent = LB.title+'　·　'+(LB.idx+1)+' / '+LB.list.length;
+  var fac = [];
+  ['原厂壳体','原厂键帽'].forEach(function(k){
+    var v = str(LB.item[k]).trim();
+    if(v) fac.push(k+':'+v);
+  });
+  var sub = document.getElementById('lbCapSub');
+  sub.textContent = fac.join('　+　');
+  sub.style.display = fac.length ? '' : 'none';
+  var multi = LB.list.length>1;
+  $('#lbPrev').style.display = multi?'':'none';
+  $('#lbNext').style.display = multi?'':'none';
+}
+function navLb(d){
+  if(LB.list.length<2) return;
+  LB.idx = (LB.idx + d + LB.list.length) % LB.list.length;
+  resetZoom();
+  showLb();
+}
+function closeLb(){
+  $('#lightbox').classList.add('hidden');
+  var img = $('#lbImg');
+  /* 换成 1px 占位图,立即释放已解码的大位图,避免后续滚动卡顿 */
+  img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+  img.style.transform = '';
+  img.style.willChange = 'auto';
+  resetZoom();
+}
+
+/* 显示区域比例与图片一致:按原图长宽比在可视范围内等比取最大 */
+function fitStage(){
+  var img = $('#lbImg'), st = $('#lbStage');
+  var iw = img.naturalWidth, ih = img.naturalHeight;
+  if(!iw || !ih) return;
+  var availW = Math.min(window.innerWidth * 0.92, 1500);
+  var availH = window.innerHeight * 0.78;
+  var k = Math.min(availW / iw, availH / ih);
+  st.style.width = Math.round(iw * k) + 'px';
+  st.style.height = Math.round(ih * k) + 'px';
+}
+window.addEventListener('resize', function(){
+  if(!$('#lightbox').classList.contains('hidden')) fitStage();
+});
+
+/* ---------- 视图切换 ---------- */
+function showView(v){
+  $('#viewSeg').querySelectorAll('button').forEach(function(b){
+    b.classList.toggle('active', b.getAttribute('data-view')===v);
+  });
+  $('#cardsView').classList.toggle('hidden', v!=='cards');
+  $('#tableView').classList.toggle('hidden', v!=='table');
+}
+
+/* ---------- Toast ---------- */
+var toastTimer = null;
+function toast(msg){
+  var t = $('#toast');
+  t.textContent = msg;
+  t.classList.remove('hidden');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ t.classList.add('hidden'); }, 2600);
+}
+
+/* ---------- 总重建 ---------- */
+function rebuild(){
+  populateFilterOptions();
+  renderAll();
+  applyFilter();
+}
+
+/* ---------- 事件绑定 ---------- */
+function bind(){
+  $('#viewSeg').addEventListener('click', function(e){
+    var b = e.target.closest('button');
+    if(b) showView(b.getAttribute('data-view'));
+  });
+  /* 搜索:图标按钮开合,点外部或滚动关闭 */
+  $('#searchBtn').addEventListener('click', function(){
+    searchOpen ? closeSearch() : openSearch();
+  });
+  $('#search').addEventListener('keydown', function(e){
+    if(e.key === 'Escape') closeSearch();
+  });
+  $('#search').addEventListener('input', function(e){
+    query = e.target.value;
+    applyFilter();
+  });
+  /* 排序面板(单选) */
+  $('#sortMSBtn').addEventListener('click', function(){
+    var p = $('#sortMSPanel'), hidden = p.classList.contains('hidden');
+    closeAllPanels();
+    if(hidden){
+      p.classList.remove('hidden');
+      document.querySelector('.sort-group').classList.add('open');
+    }
+  });
+  $('#sortMSPanel').addEventListener('click', function(e){
+    var b = e.target.closest('.ms-opt');
+    if(!b) return;
+    setSort(b.getAttribute('data-v'), sortDir);
+    closeAllPanels();
+  });
+  $('#dirBtn').addEventListener('click', function(){
+    setSort(sortKey, sortDir==='asc' ? 'desc' : 'asc');
+  });
+  /* 无线面板(单选) */
+  $('#wireMSBtn').addEventListener('click', function(){
+    var p = $('#wireMSPanel'), hidden = p.classList.contains('hidden');
+    closeAllPanels();
+    if(hidden) p.classList.remove('hidden');
+  });
+  $('#wireMSPanel').addEventListener('click', function(e){
+    var b = e.target.closest('.ms-opt');
+    if(!b) return;
+    fWire = b.getAttribute('data-v');
+    buildSinglePanel('wireMSPanel', [{v:'',label:'全部'},{v:'是',label:'仅无线'},{v:'否',label:'仅有线'}], fWire);
+    updateWireBtn();
+    applyFilter();
+    closeAllPanels();
+  });
+  function updateWireBtn(){
+    $('#wireMSBtn').textContent = fWire==='是' ? '无线:仅无线' : fWire==='否' ? '无线:仅有线' : '无线:全部';
+  }
+  /* 出售情况面板(单选) */
+  $('#saleMSBtn').addEventListener('click', function(){
+    var p2 = $('#saleMSPanel'), hidden2 = p2.classList.contains('hidden');
+    closeAllPanels();
+    if(hidden2) p2.classList.remove('hidden');
+  });
+  $('#saleMSPanel').addEventListener('click', function(e){
+    var b = e.target.closest('.ms-opt');
+    if(!b) return;
+    fSale = b.getAttribute('data-v');
+    buildSalePanel();
+    var so = document.querySelectorAll('#saleMSPanel .ms-opt');
+    var lbl = '全部';
+    for(var i=0;i<so.length;i++){ if(so[i].getAttribute('data-v') === fSale){ lbl = so[i].textContent.trim(); break; } }
+    $('#saleMSBtn').textContent = SALE_LABEL + ':' + lbl;
+    applyFilter();
+    closeAllPanels();
+  });
+  $('#tableView thead').addEventListener('click', function(e){
+    var th = e.target.closest('th.sortable');
+    if(!th) return;
+    var k = th.getAttribute('data-key');
+    setSort(k, sortKey===k ? (sortDir==='asc' ? 'desc' : 'asc') : 'asc');
+  });
+  /* 品牌多选 */
+  $('#brandMSBtn').addEventListener('click', function(){
+    var p = $('#brandMSPanel'), hidden = p.classList.contains('hidden');
+    closeAllPanels();
+    if(hidden) p.classList.remove('hidden');
+  });
+  $('#brandMSPanel').addEventListener('change', function(e){
+    var cb = e.target;
+    if(cb.type !== 'checkbox') return;
+    if(cb.checked) fBrand.add(cb.value); else fBrand.delete(cb.value);
+    updateMsBtn('brandMSBtn', '品牌', fBrand);
+    applyFilter();
+  });
+  $('#brandMSPanel').addEventListener('click', function(e){
+    var b = e.target.closest('.ms-all');
+    if(!b) return;
+    var all = b.getAttribute('data-act') === 'all';
+    $('#brandMSPanel').querySelectorAll('input[type="checkbox"]').forEach(function(cb){
+      cb.checked = all;
+      if(all) fBrand.add(cb.value); else fBrand.delete(cb.value);
+    });
+    updateMsBtn('brandMSBtn', '品牌', fBrand);
+    applyFilter();
+  });
+  /* 键位多选 */
+  $('#keysMSBtn').addEventListener('click', function(){
+    var p = $('#keysMSPanel'), hidden = p.classList.contains('hidden');
+    closeAllPanels();
+    if(hidden) p.classList.remove('hidden');
+  });
+  $('#keysMSPanel').addEventListener('change', function(e){
+    var cb = e.target;
+    if(cb.type !== 'checkbox') return;
+    if(cb.checked) fKeys.add(cb.value); else fKeys.delete(cb.value);
+    updateMsBtn('keysMSBtn', '键位', fKeys);
+    applyFilter();
+  });
+  $('#keysMSPanel').addEventListener('click', function(e){
+    var b = e.target.closest('.ms-all');
+    if(!b) return;
+    var all = b.getAttribute('data-act') === 'all';
+    $('#keysMSPanel').querySelectorAll('input[type="checkbox"]').forEach(function(cb){
+      cb.checked = all;
+      if(all) fKeys.add(cb.value); else fKeys.delete(cb.value);
+    });
+    updateMsBtn('keysMSBtn', '键位', fKeys);
+    applyFilter();
+  });
+  /* 点击面板外关闭 */
+  document.addEventListener('click', function(e){
+    if(!e.target.closest('.mselect')) closeAllPanels();
+    if(searchOpen && !e.target.closest('.search-wrap')) closeSearch();
+    if(!e.target.closest('#btnPay') && !e.target.closest('#btnPay2') && !e.target.closest('.pay-pop')) hidePay();
+  });
+  /* 复制按钮(卡片 + 表格) */
+  $('#cardsView').addEventListener('click', function(e){
+    var b = e.target.closest('.copy-btn');
+    if(!b) return;
+    e.stopPropagation();
+    copyItemInfo(b);
+  });
+  $('#tbBody').addEventListener('click', function(e){
+    var b = e.target.closest('.copy-btn');
+    if(!b) return;
+    e.stopPropagation();
+    copyItemInfo(b);
+  });
+  function openPayFrom(anchor){
+    closeAllPanels(); closeSearch();
+    var pop = $('#payModal');
+    if(anchor && pop.parentElement !== anchor) anchor.appendChild(pop);
+    if(pop.classList.contains('hidden') || pop.classList.contains('closing')){
+      cancelPayClose();
+      pop.classList.remove('closing','hidden');
+      selectPay('wx');
+      fitPayNote();
+    }else{
+      hidePay();
+    }
+  }
+  $('#btnPay').addEventListener('click', function(){ openPayFrom(document.querySelector('.hero .pay-anchor')); });
+  $('#btnPay2').addEventListener('click', function(){ openPayFrom(document.getElementById('payAnchor2')); });
+  document.querySelectorAll('.pay-tab').forEach(function(b){
+    b.addEventListener('click', function(){ selectPay(b.getAttribute('data-pay')); });
+  });
+  /* 付款码图片不压缩;两张用同样大小的盒子显示(object-fit:contain 等比内嵌),切换时浮窗尺寸不变 */
+  var payImgs = document.querySelectorAll('.pay-img');
+  function fitPayImgs(){
+    var h = Math.min(300, Math.round(window.innerHeight * 0.45));
+    var w = Math.round(h * 0.74);  /* 取两张码中较宽的比例,另一张留少量白边 */
+    payImgs.forEach(function(img){
+      img.style.height = h + 'px';
+      img.style.width = w + 'px';
+    });
+  }
+  payImgs.forEach(function(img){
+    if(img.complete && img.naturalWidth) fitPayImgs();
+    else img.addEventListener('load', fitPayImgs);
+  });
+  $('#payClose').addEventListener('click', hidePay);
+  function selectPay(which){
+    var wx = which === 'wx';
+    document.getElementById('payFigWx').classList.toggle('hidden', !wx);
+    document.getElementById('payFigAli').classList.toggle('hidden', wx);
+    document.querySelectorAll('.pay-tab').forEach(function(b){
+      b.classList.toggle('active', b.getAttribute('data-pay') === which);
+    });
+  }
+  window.addEventListener('resize', function(){
+    if(!$('#payModal').classList.contains('hidden')){ fitPayNote(); fitPayImgs(); }
+  });
+  $('#lbClose').addEventListener('click', closeLb);
+  $('#lbPrev').addEventListener('click', function(e){ e.stopPropagation(); navLb(-1); });
+  $('#lbNext').addEventListener('click', function(e){ e.stopPropagation(); navLb(1); });
+  $('#lightbox').addEventListener('click', function(e){
+    if(e.target === $('#lightbox')) closeLb();
+  });
+  /* 大图缩放:滚轮/双指缩放,放大后拖动平移,双击放大或还原 */
+  $('#lbStage').addEventListener('wheel', function(e){
+    e.preventDefault();
+    zoomAt(e.clientX, e.clientY, e.deltaY < 0 ? 1.12 : 1/1.12);
+  }, {passive:false});
+  var pts = new Map(), drag = null, pinch = null;
+  var stage = $('#lbStage');
+  stage.addEventListener('pointerdown', function(e){
+    if(e.button !== 0) return;
+    pts.set(e.pointerId, {x:e.clientX, y:e.clientY});
+    stage.setPointerCapture(e.pointerId);
+    if(pts.size === 2){
+      var a = Array.from(pts.values());
+      pinch = {d: Math.hypot(a[0].x-a[1].x, a[0].y-a[1].y)};
+      drag = null;
+    }else if(lbz.z > 1){
+      drag = {x:e.clientX, y:e.clientY, tx:lbz.tx, ty:lbz.ty};
+      stage.classList.add('dragging');
+    }
+  });
+  stage.addEventListener('pointermove', function(e){
+    if(!pts.has(e.pointerId)) return;
+    pts.set(e.pointerId, {x:e.clientX, y:e.clientY});
+    if(pinch && pts.size === 2){
+      var a = Array.from(pts.values());
+      var d = Math.hypot(a[0].x-a[1].x, a[0].y-a[1].y);
+      if(Math.abs(d - pinch.d) > 1){
+        zoomAt((a[0].x+a[1].x)/2, (a[0].y+a[1].y)/2, d/pinch.d);
+        pinch.d = d;
+      }
+    }else if(drag && lbz.z > 1){
+      lbz.tx = drag.tx + (e.clientX - drag.x);
+      lbz.ty = drag.ty + (e.clientY - drag.y);
+      applyZoom();
+    }
+  });
+  function endPt(e){
+    pts.delete(e.pointerId);
+    if(pts.size < 2) pinch = null;
+    if(pts.size === 0){ drag = null; stage.classList.remove('dragging'); }
+  }
+  stage.addEventListener('pointerup', endPt);
+  stage.addEventListener('pointercancel', endPt);
+  stage.addEventListener('dblclick', function(e){
+    if(lbz.z > 1) resetZoom();
+    else zoomAt(e.clientX, e.clientY, 2.5);
+  });
+  $('#lbMinus').addEventListener('click', function(){ zoomCenter(1/1.25); });
+  $('#lbPlus').addEventListener('click', function(){ zoomCenter(1.25); });
+  $('#lbFit').addEventListener('click', resetZoom);
+  /* 手机端:累计滑动超过 20px 才切换顶部栏(下滑收起,上滑出现);页面顶部 240px 内常显 */
+  var lastY = window.scrollY;
+  window.addEventListener('scroll', function(){
+    if(searchOpen) closeSearch();
+    var bar = document.querySelector('.toolbar');
+    if(!window.matchMedia('(max-width:680px)').matches){
+      bar.classList.remove('tb-hidden');
+      lastY = window.scrollY;
+      return;
+    }
+    var y = window.scrollY, dy = y - lastY;
+    if(y < 240){ bar.classList.remove('tb-hidden'); lastY = y; return; }
+    if(dy > 20){ bar.classList.add('tb-hidden'); lastY = y; }
+    else if(dy < -20){ bar.classList.remove('tb-hidden'); lastY = y; }
+  }, {passive:true});
+  document.addEventListener('keydown', function(e){
+    var lbOpen = !$('#lightbox').classList.contains('hidden');
+    if(e.key==='Escape'){
+      if(navOpen){ closeNav(); return; }
+      if(!$('#payModal').classList.contains('hidden')){ hidePay(); return; }
+      if(lbOpen) closeLb();
+    }else if(lbOpen && e.key==='ArrowLeft'){ navLb(-1); }
+    else if(lbOpen && e.key==='ArrowRight'){ navLb(1); }
+  });
+}
+
+/* ---------- 品类菜单 ---------- */
+var MENU = [{"label": "键盘", "page": "键盘.html", "available": true, "current": false}, {"label": "鼠标", "page": "鼠标.html", "available": true, "current": true}, {"label": "鼠标垫", "page": "", "available": false, "current": false}, {"label": "耳机", "page": "", "available": false, "current": false}];
+var FILTER_CFG = {"showKeys": false, "showWire": false, "saleLabel": "状态", "saleFrom": "status", "hideCols": ["购买时间", "购买渠道", "键位", "轴体", "颜色", "无线", "原厂壳体", "原厂键帽"], "showStatusCol": true, "cardMeta": "status", "modelColWidth": 278};
+var SALE_LABEL = FILTER_CFG.saleLabel || '出售';
+(function(){
+  if(!FILTER_CFG.showKeys){ var k = document.getElementById('keysMSBtn'); k.closest('.mselect').style.display = 'none'; }
+  if(!FILTER_CFG.showWire){ var w = document.getElementById('wireMSBtn'); w.closest('.mselect').style.display = 'none'; }
+  document.getElementById('saleMSBtn').textContent = SALE_LABEL + ':全部';
+  if(FILTER_CFG.modelColWidth){
+    document.documentElement.style.setProperty('--model-w', FILTER_CFG.modelColWidth + 'px');
+  }
+  if(FILTER_CFG.showStatusCol){
+    var ths = document.querySelectorAll('#tableView thead th');
+    var memoTh = ths[ths.length - 1];
+    var sth = document.createElement('th');
+    sth.textContent = '状态';
+    memoTh.parentNode.insertBefore(sth, memoTh);
+  }
+  if(FILTER_CFG.hideCols && FILTER_CFG.hideCols.length){
+    document.querySelectorAll('thead th[data-key]').forEach(function(th){
+      if(FILTER_CFG.hideCols.indexOf(th.getAttribute('data-key')) >= 0) th.remove();
+    });
+  }
+})();
+var HIDE_COLS = FILTER_CFG.hideCols || [];
+function tdc(key, html){ return HIDE_COLS.indexOf(key) < 0 ? html : ''; }
+(function(){
+  var list = document.getElementById('navList');
+  MENU.forEach(function(m){
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'nav-item' + (m.current ? ' cur' : '') + (m.available ? '' : ' off');
+    b.innerHTML = '<span>' + esc(m.label) + '</span>'
+      + (m.available ? '' : '<span class="tag">暂未上架</span>');
+    b.addEventListener('click', function(){
+      if(m.available && !m.current){ location.href = m.page; }
+      else if(!m.available){ toast('「' + m.label + '」暂未上架'); }
+      else{ closeNav(); }
+    });
+    list.appendChild(b);
+  });
+})();
+var navOpen = false;
+function openNav(){
+  navOpen = true;
+  document.getElementById('navDrawer').classList.add('open');
+  document.getElementById('navMask').classList.add('show');
+}
+function closeNav(){
+  navOpen = false;
+  document.getElementById('navDrawer').classList.remove('open');
+  document.getElementById('navMask').classList.remove('show');
+}
+function toggleNavByScroll(){
+  var heroGone = document.querySelector('.hero').getBoundingClientRect().bottom < 40;
+  document.getElementById('navBtn2').classList.toggle('closed', !heroGone);
+  document.getElementById('payAnchor2').classList.toggle('closed', !heroGone);
+}
+window.addEventListener('scroll', toggleNavByScroll, {passive:true});
+document.getElementById('navBtn').addEventListener('click', function(e){
+  e.stopPropagation();
+  navOpen ? closeNav() : openNav();
+});
+document.getElementById('navBtn2').addEventListener('click', function(e){
+  e.stopPropagation();
+  navOpen ? closeNav() : openNav();
+});
+document.getElementById('navMask').addEventListener('click', closeNav);
+
+/* ---------- 启动 ---------- */
+function init(){
+  DATA = orderByBrand(DEFAULT_DATA.map(function(x){ return Object.assign({}, x, {_search:null}); }));
+  bind();
+  rebuild();
+}
+
+init();
+})();
+</script>
+</body>
+</html>
+
+
+
+
+
+
