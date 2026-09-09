@@ -7,10 +7,10 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%8C%A8%EF%B8%8F%3C/text%3E%3C/svg%3E">
 <style>
 :root{
-  --bg:#f3f5f9; --card:#ffffff; --ink:#20242e; --muted:#7b8394; --line:#e6e9f0;
+  --bg:#eef1f6; --card:#ffffff; --ink:#20242e; --muted:#7b8394; --line:#e6e9f0;
   --accent:#3d5af1; --accent-weak:#eef1ff; --price:#e0472f; --green:#1a9e5c;
   --radius:14px;
-  --shadow:0 1px 2px rgba(16,24,40,.05), 0 4px 16px rgba(16,24,40,.07);
+  --shadow:0 1px 2px rgba(16,24,40,.04), 0 4px 10px rgba(16,24,40,.05), 0 12px 28px rgba(16,24,40,.09);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{-webkit-text-size-adjust:100%}
@@ -25,6 +25,10 @@ button{font-family:inherit}
 /* ---------- 头部 ---------- */
 .hero{
   background:linear-gradient(135deg,#141a2e 0%,#1d2a4d 55%,#24386b 100%);
+  background-image:
+    radial-gradient(ellipse 600px 300px at 85% -40%, rgba(90,130,255,.22), transparent),
+    radial-gradient(ellipse 400px 240px at 8% 130%, rgba(60,200,190,.10), transparent),
+    linear-gradient(135deg,#141a2e 0%,#1d2a4d 55%,#24386b 100%);
   color:#fff; padding:20px 20px;
 }
 .hero-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
@@ -98,9 +102,10 @@ th .arr{font-size:10px;margin-left:3px}
 .refresh-btn:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(0,0,0,.32)}
 
 /* ---------- 工具栏 ---------- */
-.toolbar{position:sticky;top:12px;z-index:40;padding:0 16px;margin-top:16px}
 .toolbar-inner{
-  max-width:1200px;margin:0 auto;background:#fff;border:1px solid var(--line);
+  max-width:1200px;margin:0 auto;background:rgba(255,255,255,.84);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  border:1px solid var(--line);
   border-radius:12px;box-shadow:var(--shadow);
   display:flex;gap:12px;align-items:center;padding:8px 10px;flex-wrap:wrap;
 }
@@ -181,7 +186,7 @@ main{max-width:1200px;margin:0 auto;padding:0 16px}
   overflow:hidden;box-shadow:var(--shadow);
   transition:transform .18s,box-shadow .18s;display:flex;flex-direction:column;
 }
-.card:hover{transform:translateY(-3px);box-shadow:0 8px 26px rgba(16,24,40,.13)}
+.card:hover{transform:translateY(-4px);box-shadow:0 2px 4px rgba(16,24,40,.05), 0 10px 22px rgba(16,24,40,.09), 0 20px 44px rgba(16,24,40,.16)}
 /* 已出售:灰色蒙版 + 闲鱼风「卖掉了」印章图 */
 .card.sold{position:relative}
 /* 已出售:仅一层蒙版 + 印章,图片文字保持原样 */
@@ -204,7 +209,6 @@ button:focus,button:focus-visible{outline:none}
   z-index:5;pointer-events:none;
 }
 /* 图片懒加载:底色占位,加载完成后渐显 */
-.card-img{background:#eef1f5}
 .card-img img.main{opacity:0;transition:opacity .25s ease}
 .card-img img.main.ld{opacity:1}
 .c-img img{opacity:0;transition:opacity .25s ease}
@@ -217,7 +221,10 @@ tr.sold-tr .w-yes{color:#b3bac7!important}
 tr.sold-tr{background:#f8f9fc}
 tr.sold-tr:hover{background:#f2f4f9}
 .card-img{
-  position:relative;aspect-ratio:4/3;background:#edeff4;overflow:hidden;flex:none;
+  position:relative;aspect-ratio:4/3;overflow:hidden;flex:none;
+  background-color:#f6f7fb;
+  background-image:radial-gradient(circle, rgba(120,130,150,.10) 1px, transparent 1px);
+  background-size:14px 14px;
 }
 /* 骨架屏:图片加载完成前微光扫过,加载完成后被图片覆盖 */
 .card-img::before{
@@ -653,7 +660,7 @@ footer{max-width:1200px;margin:34px auto 0;padding:0 16px 56px}
 <aside id="navDrawer" class="nav-drawer" aria-label="分类菜单">
   <div class="nav-head">闲置物品</div>
   <nav id="navList"></nav>
-  <div class="nav-date">数据生成于 2026-09-10 05:17</div>
+  <div class="nav-date">数据生成于 2026-09-10 05:25</div>
   <div class="nav-foot">
     <a class="nav-link" href="https://www.mousetester.cn/?utm_source=keyboard" target="_blank" rel="noopener">鼠标测试工具
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg>
@@ -781,7 +788,7 @@ footer{max-width:1200px;margin:34px auto 0;padding:0 16px 56px}
 (function(){
 'use strict';
 
-var GEN_DATE = '2026-09-10 05:17';
+var GEN_DATE = '2026-09-10 05:25';
 var FIELDS = ['品牌','型号','键位','轴体','颜色','无线','购入价','购买时间','购买渠道','闲置价格'];
 
 var DEFAULT_DATA = JSON.parse(document.getElementById('kb-data').textContent);
