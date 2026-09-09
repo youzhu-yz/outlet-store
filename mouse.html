@@ -344,20 +344,36 @@ footer{max-width:1200px;margin:34px auto 0;padding:0 16px 56px}
   position:fixed;inset:0;z-index:100;background:rgba(8,10,16,.93);
   display:flex;align-items:center;justify-content:center;
 }
-.lb figure{display:flex;flex-direction:column;align-items:center;gap:12px}
+.lb figure{position:relative;width:100vw;height:100vh;margin:0;
+  display:flex;align-items:center;justify-content:center}
 .lb-stage{
-  width:92vw;max-width:1500px;height:calc(100vh - 190px);max-height:82vh;
+  width:100vw;height:100vh;
   overflow:hidden;display:flex;align-items:center;justify-content:center;
-  background:#111;border-radius:8px;cursor:zoom-in;touch-action:none;
-  box-shadow:0 10px 50px rgba(0,0,0,.6);
+  background:#0a0c11;cursor:zoom-in;touch-action:none;
 }
+.lb-stage.zoomed{cursor:grab}
+.lb-stage.dragging{cursor:grabbing}
 .lb-stage.zoomed{cursor:grab}
 .lb-stage.dragging{cursor:grabbing}
 .lb-stage img{
   max-width:100%;max-height:100%;object-fit:contain;
   user-select:none;-webkit-user-drag:none;
 }
-.lb figcaption{color:#cfd4e0;font-size:13px;letter-spacing:.5px}
+.lb figcaption{
+  position:absolute;left:0;right:0;bottom:34px;text-align:center;
+  color:#e8ebf2;font-size:13px;letter-spacing:.5px;
+  text-shadow:0 1px 4px rgba(0,0,0,.9);pointer-events:none;
+}
+.lb-cap-sub{
+  position:absolute;left:0;right:0;bottom:12px;text-align:center;
+  color:#aab3c5;font-size:12px;text-shadow:0 1px 4px rgba(0,0,0,.9);pointer-events:none;
+}
+.lb-zoom{
+  position:absolute;top:14px;left:50%;transform:translateX(-50%);
+  display:flex;align-items:center;gap:2px;
+  background:rgba(20,24,34,.55);border-radius:999px;padding:4px;
+  backdrop-filter:blur(6px);
+}
 .lb-zoom{
   display:flex;align-items:center;gap:2px;
   background:rgba(255,255,255,.1);border-radius:999px;padding:4px;
@@ -613,7 +629,7 @@ footer{max-width:1200px;margin:34px auto 0;padding:0 16px 56px}
 <aside id="navDrawer" class="nav-drawer" aria-label="分类菜单">
   <div class="nav-head">闲置物品</div>
   <nav id="navList"></nav>
-  <div class="nav-date">数据生成于 2026-09-10 04:24</div>
+  <div class="nav-date">数据生成于 2026-09-10 04:36</div>
   <div class="nav-foot">
     <a class="nav-link" href="https://www.mousetester.cn/?utm_source=keyboard" target="_blank" rel="noopener">鼠标测试工具
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg>
@@ -740,7 +756,7 @@ footer{max-width:1200px;margin:34px auto 0;padding:0 16px 56px}
 (function(){
 'use strict';
 
-var GEN_DATE = '2026-09-10 04:24';
+var GEN_DATE = '2026-09-10 04:36';
 var FIELDS = ['品牌','型号','键位','轴体','颜色','无线','购入价','购买时间','购买渠道','闲置价格'];
 
 var DEFAULT_DATA = JSON.parse(document.getElementById('kb-data').textContent);
@@ -1616,7 +1632,7 @@ function bind(){
   $('#lbPrev').addEventListener('click', function(e){ e.stopPropagation(); navLb(-1); });
   $('#lbNext').addEventListener('click', function(e){ e.stopPropagation(); navLb(1); });
   $('#lightbox').addEventListener('click', function(e){
-    if(e.target === $('#lightbox')) closeLb();
+    if(!e.target.closest('img, .lb-x, .lb-nav, .lb-zoom')) closeLb();
   });
   /* 大图缩放:滚轮/双指缩放,放大后拖动平移,双击放大或还原 */
   $('#lbStage').addEventListener('wheel', function(e){
