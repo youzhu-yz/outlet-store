@@ -612,7 +612,7 @@ footer{max-width:1200px;margin:34px auto 0;padding:0 16px 56px}
 <aside id="navDrawer" class="nav-drawer" aria-label="分类菜单">
   <div class="nav-head">闲置物品</div>
   <nav id="navList"></nav>
-  <div class="nav-date">数据生成于 2026-09-09 05:01</div>
+  <div class="nav-date">数据生成于 2026-09-09 09:32</div>
   <div class="nav-foot">
     <a class="nav-link" href="https://www.mousetester.cn/?utm_source=keyboard" target="_blank" rel="noopener">鼠标测试工具
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg>
@@ -664,8 +664,10 @@ footer{max-width:1200px;margin:34px auto 0;padding:0 16px 56px}
       <div class="ms-panel hidden" id="saleMSPanel"></div>
     </div>
     </div>
-    <div class="pay-anchor tb-pay closed" id="payAnchor2">
+    <div class="tb-pay closed" id="payAnchor2">
+      <div class="pay-anchor">
       <button type="button" class="tb-menu" id="btnPay2" title="付款码" aria-label="打开付款码"><svg viewBox="0 0 20 20" width="16" height="16" fill="currentColor" aria-hidden="true"><rect x="1" y="1" width="7" height="7" fill="none" stroke="currentColor" stroke-width="2"/><rect x="12" y="1" width="7" height="7" fill="none" stroke="currentColor" stroke-width="2"/><rect x="1" y="12" width="7" height="7" fill="none" stroke="currentColor" stroke-width="2"/><rect x="3.5" y="3.5" width="2" height="2"/><rect x="14.5" y="3.5" width="2" height="2"/><rect x="3.5" y="14.5" width="2" height="2"/><rect x="12" y="12" width="2" height="2"/><rect x="16" y="12" width="2" height="2"/><rect x="14" y="14" width="2" height="2"/><rect x="12" y="16" width="2" height="2"/><rect x="16" y="16" width="2" height="2"/></svg></button>
+      </div>
     </div>
     <button type="button" class="tb-menu closed" id="navBtn2" title="切换分类" aria-label="打开分类菜单"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
   </div>
@@ -737,7 +739,7 @@ footer{max-width:1200px;margin:34px auto 0;padding:0 16px 56px}
 (function(){
 'use strict';
 
-var GEN_DATE = '2026-09-09 05:01';
+var GEN_DATE = '2026-09-09 09:32';
 var FIELDS = ['品牌','型号','键位','轴体','颜色','无线','购入价','购买时间','购买渠道','闲置价格'];
 
 var DEFAULT_DATA = JSON.parse(document.getElementById('kb-data').textContent);
@@ -1554,6 +1556,13 @@ function bind(){
     closeAllPanels(); closeSearch();
     var pop = $('#payModal');
     if(anchor && pop.parentElement !== anchor) anchor.appendChild(pop);
+    /* 工具栏锚点:弹窗右缘对齐二维码按钮;蓝区锚点:恢复默认右对齐 */
+    if(anchor && anchor.classList.contains('toolbar')){
+      var tb = anchor.getBoundingClientRect(), bb = document.getElementById('btnPay2').getBoundingClientRect();
+      pop.style.right = Math.max(0, Math.round(tb.right - bb.right)) + 'px';
+    }else{
+      pop.style.right = '';
+    }
     if(pop.classList.contains('hidden') || pop.classList.contains('closing')){
       cancelPayClose();
       pop.classList.remove('closing','hidden');
@@ -1564,7 +1573,7 @@ function bind(){
     }
   }
   $('#btnPay').addEventListener('click', function(){ openPayFrom(document.querySelector('.hero .pay-anchor')); });
-  $('#btnPay2').addEventListener('click', function(){ openPayFrom(document.getElementById('payAnchor2')); });
+  $('#btnPay2').addEventListener('click', function(){ openPayFrom(document.querySelector('.toolbar')); });
   document.querySelectorAll('.pay-tab').forEach(function(b){
     b.addEventListener('click', function(){ selectPay(b.getAttribute('data-pay')); });
   });
@@ -1729,12 +1738,17 @@ function closeNav(){
   document.getElementById('navDrawer').classList.remove('open');
   document.getElementById('navMask').classList.remove('show');
 }
-function toggleNavByScroll(){
-  var heroGone = document.querySelector('.hero').getBoundingClientRect().bottom < 40;
+function applyNavButtons(heroGone){
   document.getElementById('navBtn2').classList.toggle('closed', !heroGone);
   document.getElementById('payAnchor2').classList.toggle('closed', !heroGone);
 }
+function toggleNavByScroll(){
+  applyNavButtons(document.querySelector('.hero').getBoundingClientRect().bottom < 40);
+}
 window.addEventListener('scroll', toggleNavByScroll, {passive:true});
+new IntersectionObserver(function(entries){
+  applyNavButtons(!entries[0].isIntersecting);
+}, {rootMargin: '40px 0px 0px 0px'}).observe(document.querySelector('.hero'));
 document.getElementById('navBtn').addEventListener('click', function(e){
   e.stopPropagation();
   navOpen ? closeNav() : openNav();
