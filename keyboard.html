@@ -270,6 +270,30 @@ tr.sold-tr:hover{background:#f2f4f9}
 .brand{font-size:12px;letter-spacing:1.5px;color:var(--muted);font-weight:600;text-transform:uppercase}
 .model{font-size:17px;font-weight:700;line-height:1.35}
 .model-row{display:flex;align-items:center;gap:8px;margin:2px 0 10px}
+/* 紧凑卡片(鼠标页) */
+.card-body.cb{flex-direction:row;justify-content:space-between;gap:10px;
+  padding:8px 12px 10px;align-items:stretch}
+.card-body.cb{position:relative}
+.card-body.cb > .st-tag{position:absolute;left:10px;bottom:calc(100% + 6px);z-index:3}
+.cb-main{min-width:0;flex:0 1 auto;align-self:flex-end}
+.card-body.cb .p-main{white-space:nowrap}
+.card-body.cb .cur{font-size:40px}
+.card-body.cb .cur .yen{font-size:18px}
+.card-body.cb .orig{white-space:nowrap}
+.card-body.cb .orig .off{display:inline-block;font-size:11px;padding:1px 6px;vertical-align:1px;margin-left:7px}
+.card-body.cb .memo{font-size:11px;margin-top:2px}
+.cb-side{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;
+  gap:5px;min-width:0;max-width:58%}
+.cb-name{display:flex;flex-direction:column;align-items:flex-end;gap:2px;
+  min-width:0;text-align:right}
+.cb-brow{display:flex;align-items:center;gap:4px;min-width:0}
+.cb-name .brand{font-size:11px;letter-spacing:1px;color:var(--muted);
+  font-weight:600;text-transform:uppercase;white-space:nowrap}
+.cb-name .model{font-weight:700;font-size:14px;line-height:1.3;
+  white-space:nowrap;max-width:100%;overflow:hidden}
+.cb-name .g{font-size:11px}
+.cb-side .card-strip{padding:0;justify-content:flex-end}
+.cb-side .card-strip img{width:44px;height:33px}
 .model-row .model{flex:1;min-width:0}
 .copy-btn{
   border:none;background:none;color:#b7bfcf;cursor:pointer;
@@ -360,16 +384,16 @@ footer{max-width:1200px;margin:34px auto 0;padding:0 16px 56px}
   user-select:none;-webkit-user-drag:none;
 }
 .lb figcaption{
-  position:absolute;left:0;right:0;bottom:34px;text-align:center;
+  position:absolute;left:0;right:0;bottom:76px;text-align:center;
   color:#e8ebf2;font-size:13px;letter-spacing:.5px;
   text-shadow:0 1px 4px rgba(0,0,0,.9);pointer-events:none;
 }
 .lb-cap-sub{
-  position:absolute;left:0;right:0;bottom:12px;text-align:center;
+  position:absolute;left:0;right:0;bottom:56px;text-align:center;
   color:#aab3c5;font-size:12px;text-shadow:0 1px 4px rgba(0,0,0,.9);pointer-events:none;
 }
 .lb-zoom{
-  position:absolute;top:14px;left:50%;transform:translateX(-50%);
+  position:absolute;bottom:12px;left:50%;transform:translateX(-50%);
   display:flex;align-items:center;gap:2px;
   background:rgba(20,24,34,.55);border-radius:999px;padding:4px;
   backdrop-filter:blur(6px);
@@ -393,12 +417,12 @@ footer{max-width:1200px;margin:34px auto 0;padding:0 16px 56px}
 .lb-zoom button.txt{width:auto;padding:0 10px;font-size:12.5px;color:#cfd4e0}
 .lb-zoom button.txt:hover{color:#fff;background:transparent}
 .lb-x{
-  position:absolute;top:16px;right:22px;background:none;border:none;
+  position:absolute;top:16px;right:22px;z-index:5;background:none;border:none;
   color:#fff;font-size:30px;line-height:1;cursor:pointer;opacity:.75;
 }
 .lb-x:hover{opacity:1}
 .lb-nav{
-  position:absolute;top:50%;transform:translateY(-50%);
+  position:absolute;top:50%;transform:translateY(-50%);z-index:5;
   width:46px;height:46px;border-radius:50%;border:none;cursor:pointer;
   background:rgba(255,255,255,.12);color:#fff;font-size:26px;line-height:1;
 }
@@ -629,7 +653,7 @@ footer{max-width:1200px;margin:34px auto 0;padding:0 16px 56px}
 <aside id="navDrawer" class="nav-drawer" aria-label="分类菜单">
   <div class="nav-head">闲置物品</div>
   <nav id="navList"></nav>
-  <div class="nav-date">数据生成于 2026-09-10 04:36</div>
+  <div class="nav-date">数据生成于 2026-09-10 05:17</div>
   <div class="nav-foot">
     <a class="nav-link" href="https://www.mousetester.cn/?utm_source=keyboard" target="_blank" rel="noopener">鼠标测试工具
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg>
@@ -738,6 +762,7 @@ footer{max-width:1200px;margin:34px auto 0;padding:0 16px 56px}
       <button type="button" id="lbPlus" title="放大">＋</button>
       <span class="sep"></span>
       <button type="button" id="lbFit" class="txt" title="恢复适应窗口">适应</button>
+      <button type="button" id="lbRot" class="txt" title="旋转 90 度">旋转</button>
     </div>
     <figcaption id="lbCap"></figcaption>
     <div id="lbCapSub" class="lb-cap-sub"></div>
@@ -756,7 +781,7 @@ footer{max-width:1200px;margin:34px auto 0;padding:0 16px 56px}
 (function(){
 'use strict';
 
-var GEN_DATE = '2026-09-10 04:36';
+var GEN_DATE = '2026-09-10 05:17';
 var FIELDS = ['品牌','型号','键位','轴体','颜色','无线','购入价','购买时间','购买渠道','闲置价格'];
 
 var DEFAULT_DATA = JSON.parse(document.getElementById('kb-data').textContent);
@@ -1124,6 +1149,29 @@ function priceHtml(item){
   }
   return out;
 }
+/* 紧凑卡片价格:折扣标签放在购入价后面 */
+function priceHtmlC(item){
+  var p = str(item['闲置价格']).trim();
+  var out = '';
+  var buys = [];
+  ['购入价','壳体购入价','键帽购入价'].forEach(function(k){
+    var v = str(item[k]).trim();
+    if(v!=='' && isFinite(Number(v))) buys.push(esc(money(v)));
+  });
+  var offv = calcOffPct(item);
+  var offTag = offv !== null ? ' <span class="off">-'+offv+'%</span>' : '';
+  if(p!=='' && isFinite(Number(p))){
+    out += '<div class="p-main"><span class="cur"><span class="yen">¥</span><i class="num">'+esc(money(p))+'</i></span></div>';
+  }else if(p !== ''){
+    out += '<div class="p-main"><span class="cur">'+esc(p)+'</span></div>';
+  }else{
+    out = '<div class="p-main"><span class="cur">面议</span></div>';
+  }
+  if(buys.length){
+    out += '<div class="orig">购入价:'+buys.join('+')+offTag+'</div>';
+  }
+  return out;
+}
 function calcTotalCost(item){
   var total = 0;
   ['购入价','壳体购入价','键帽购入价'].forEach(function(k){
@@ -1160,20 +1208,49 @@ function memoHtml(item){
 function renderCards(){
   $('#cardsView').innerHTML = DISPLAY.map(function(item){
     var id = item['编号'];
+    var body;
+    if(FILTER_CFG.compactCard){
+      /* 紧凑:左价格 / 右[复制+品牌型号 / 小图],白底高度减半 */
+      body = '<div class="card-body cb">'
+        + metaHtml(item)
+        + '<div class="cb-main">'+priceHtmlC(item)+memoHtml(item)+'</div>'
+        + '<div class="cb-side">'
+        + '<div class="cb-name">'
+        + '<div class="cb-brow">'
+        + '<button type="button" class="copy-btn" data-id="'+esc(id)+'" title="复制编号、品牌、型号">'+COPY_SVG+'</button>'
+        + '<span class="brand">'+esc(item['品牌'])+'</span></div>'
+        + '<div class="model">'+esc(item['型号'])+comboHtml(item)+'</div>'
+        + '</div>'
+        + '<div class="card-strip" id="cs-'+esc(id)+'"></div>'
+        + '</div></div>';
+    }else{
+      body = '<div class="card-body">'
+        + '<div class="brand">'+esc(item['品牌'])+'</div>'
+        + '<div class="model-row"><h3 class="model">'+esc(item['型号'])+comboHtml(item)+'</h3>'
+        + '<button type="button" class="copy-btn" data-id="'+esc(id)+'" title="复制编号、品牌、型号">'+COPY_SVG+'</button></div>'
+        + memoHtml(item)
+        + '<div class="chips">'+chipsHtml(item)+'</div>'
+        + '<div class="card-foot"><div>'+priceHtml(item)+'</div>'
+        + '<div class="meta">'+metaHtml(item)+'</div>'
+        + '</div></div>';
+    }
     return '<article class="card'+(item['已出售']?' sold':'')+'" data-id="'+esc(id)+'">'
       + '<div class="card-img" id="ci-'+esc(id)+'"></div>'
-      + '<div class="card-strip" id="cs-'+esc(id)+'"></div>'
-      + '<div class="card-body">'
-      + '<div class="brand">'+esc(item['品牌'])+'</div>'
-      + '<div class="model-row"><h3 class="model">'+esc(item['型号'])+comboHtml(item)+'</h3>'
-      + '<button type="button" class="copy-btn" data-id="'+esc(id)+'" title="复制编号、品牌、型号">'+COPY_SVG+'</button></div>'
-      + memoHtml(item)
-      + '<div class="chips">'+chipsHtml(item)+'</div>'
-      + '<div class="card-foot"><div>'+priceHtml(item)+'</div>'
-      + '<div class="meta">'+metaHtml(item)+'</div>'
-      + '</div></div></article>';
+      + body + '</article>';
   }).join('');
   DATA.forEach(function(it){ fillCardImages(it); });
+  fitCompactNames();
+}
+/* 紧凑卡片:型号过宽时逐步缩小字号,保持单行 */
+function fitCompactNames(){
+  document.querySelectorAll('.cb-name .model').forEach(function(el){
+    el.style.fontSize = '';
+    var size = 14;
+    while(size > 8 && el.scrollWidth > el.clientWidth + 1){
+      size -= 0.5;
+      el.style.fontSize = size + 'px';
+    }
+  });
 }
 function fillCardImages(item){
   var id = item['编号'];
@@ -1320,9 +1397,14 @@ function applyFilter(){
 
 /* ---------- 大图缩放 ---------- */
 var lbz = {z:1, tx:0, ty:0};
+var lbRot = 0;  /* 0/90/180/270,竖屏看横图时旋转填充 */
 function applyZoom(){
   var img = $('#lbImg');
-  img.style.transform = lbz.z > 1 ? 'translate('+lbz.tx+'px,'+lbz.ty+'px) scale('+lbz.z+')' : '';
+  var t = '';
+  if(lbz.tx || lbz.ty) t += 'translate('+lbz.tx+'px,'+lbz.ty+'px) ';
+  if(lbRot) t += 'rotate('+lbRot+'deg) ';
+  if(lbz.z > 1) t += 'scale('+lbz.z+')';
+  img.style.transform = t;
   /* 只有放大时才提升合成层,避免常驻大纹理拖累滚动 */
   img.style.willChange = lbz.z > 1 ? 'transform' : 'auto';
   $('#lbStage').classList.toggle('zoomed', lbz.z > 1);
@@ -1354,6 +1436,7 @@ function openLightbox(item, i, listOverride){
   var list = listOverride || origsOf(item);
   if(!list.length) return;
   LB = {item:item, list:list, idx:Math.min(i, list.length-1), title:'#'+item['编号']+' · '+str(item['品牌'])+' '+str(item['型号'])};
+  lbRot = 0;
   resetZoom();
   $('#lightbox').classList.remove('hidden');
   showLb();
@@ -1397,11 +1480,27 @@ function fitStage(){
   var img = $('#lbImg'), st = $('#lbStage');
   var iw = img.naturalWidth, ih = img.naturalHeight;
   if(!iw || !ih) return;
-  var availW = Math.min(window.innerWidth * 0.92, 1500);
-  var availH = window.innerHeight * 0.78;
-  var k = Math.min(availW / iw, availH / ih);
-  st.style.width = Math.round(iw * k) + 'px';
-  st.style.height = Math.round(ih * k) + 'px';
+  var availW = window.innerWidth * 0.98;
+  var availH = window.innerHeight * 0.92;
+  var kw, kh;
+  if(lbRot % 180){
+    kw = availW / ih; kh = availH / iw;
+  }else{
+    kw = availW / iw; kh = availH / ih;
+  }
+  var k = Math.min(kw, kh);
+  img.style.width = Math.round(iw * k) + 'px';
+  img.style.height = Math.round(ih * k) + 'px';
+  img.style.maxWidth = 'none';
+  img.style.maxHeight = 'none';
+  if(lbRot % 180){
+    st.style.width = Math.round(ih * k) + 'px';
+    st.style.height = Math.round(iw * k) + 'px';
+  }else{
+    st.style.width = Math.round(iw * k) + 'px';
+    st.style.height = Math.round(ih * k) + 'px';
+  }
+  applyZoom();
 }
 window.addEventListener('resize', function(){
   if(!$('#lightbox').classList.contains('hidden')) fitStage();
@@ -1632,7 +1731,7 @@ function bind(){
   $('#lbPrev').addEventListener('click', function(e){ e.stopPropagation(); navLb(-1); });
   $('#lbNext').addEventListener('click', function(e){ e.stopPropagation(); navLb(1); });
   $('#lightbox').addEventListener('click', function(e){
-    if(!e.target.closest('img, .lb-x, .lb-nav, .lb-zoom')) closeLb();
+    if(!e.target.closest('img, .lb-stage, .lb-x, .lb-nav, .lb-zoom')) closeLb();
   });
   /* 大图缩放:滚轮/双指缩放,放大后拖动平移,双击放大或还原 */
   $('#lbStage').addEventListener('wheel', function(e){
@@ -1684,6 +1783,11 @@ function bind(){
   $('#lbMinus').addEventListener('click', function(){ zoomCenter(1/1.25); });
   $('#lbPlus').addEventListener('click', function(){ zoomCenter(1.25); });
   $('#lbFit').addEventListener('click', resetZoom);
+  $('#lbRot').addEventListener('click', function(){
+    lbRot = (lbRot + 90) % 360;
+    lbz = {z:1, tx:0, ty:0};
+    fitStage();
+  });
   /* 手机端:累计滑动超过 20px 才切换顶部栏(下滑收起,上滑出现);页面顶部 240px 内常显 */
   var lastY = window.scrollY;
   window.addEventListener('scroll', function(){
