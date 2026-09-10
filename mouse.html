@@ -191,7 +191,12 @@ main{max-width:1200px;margin:0 auto;padding:0 16px}
   overflow:hidden;box-shadow:var(--shadow);
   transition:transform .18s,box-shadow .18s;display:flex;flex-direction:column;
 }
-.card:hover{transform:translateY(-4px);box-shadow:0 2px 4px rgba(16,24,40,.05), 0 10px 22px rgba(16,24,40,.09), 0 20px 44px rgba(16,24,40,.16)}
+/* 悬停上浮仅限支持鼠标的设备:手机点按会让 :hover 粘住,导致卡片被顶起 */
+@media (hover:hover){
+  .card:hover{transform:translateY(-4px);box-shadow:0 2px 4px rgba(16,24,40,.05), 0 10px 22px rgba(16,24,40,.09), 0 20px 44px rgba(16,24,40,.16)}
+  .card-img:hover img.main{transform:scale(1.045)}
+  .card-img:hover img.noimg-main{transform:none}
+}
 /* 已出售:灰色蒙版 + 闲鱼风「卖掉了」印章图 */
 .card.sold{position:relative}
 /* 已出售:仅一层蒙版 + 印章,图片文字保持原样 */
@@ -248,8 +253,6 @@ tr.sold-tr:hover{background:#f2f4f9}
 }
 /* 占位图整图显示,不被裁切 */
 .card-img img.noimg-main{object-fit:contain;background:#eef1f5;cursor:default}
-.card-img:hover img.noimg-main{transform:none}
-.card-img:hover img.main{transform:scale(1.045)}
 .card-img.no-img{cursor:pointer}
 .card-img.no-img:hover .ph{border-color:var(--accent)}
 .card-img.no-img:hover .ph-t{color:var(--accent)}
@@ -700,7 +703,7 @@ footer{margin-top:auto;padding:16px 0 calc(18px + env(safe-area-inset-bottom,0px
 <aside id="navDrawer" class="nav-drawer" aria-label="分类菜单">
   <div class="nav-head">李有猪的小卖部</div>
   <nav id="navList"></nav>
-  <div class="nav-date">数据生成于 2026-09-11 03:16</div>
+  <div class="nav-date">数据生成于 2026-09-11 03:25</div>
   <div class="nav-foot">
     <a class="nav-link" href="https://www.mousetester.cn/?utm_source=keyboard" target="_blank" rel="noopener">鼠标测试工具
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg>
@@ -832,7 +835,7 @@ footer{margin-top:auto;padding:16px 0 calc(18px + env(safe-area-inset-bottom,0px
 (function(){
 'use strict';
 
-var GEN_DATE = '2026-09-11 03:16';
+var GEN_DATE = '2026-09-11 03:25';
 var FIELDS = ['品牌','型号','键位','轴体','颜色','无线','购入价','购买时间','购买渠道','闲置价格'];
 
 var DEFAULT_DATA = JSON.parse(document.getElementById('kb-data').textContent);
