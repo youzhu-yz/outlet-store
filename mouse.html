@@ -380,7 +380,7 @@ th.c-img{white-space:nowrap;width:1%}
 
 /* ---------- 页脚:贴整个页面最底部(内容不足一屏时贴屏幕底,超出时在文档末尾) ---------- */
 body{display:flex;flex-direction:column;min-height:100vh}
-main{flex:1 0 auto}
+main{flex:1 0 auto;width:100%}
 footer{margin-top:auto;padding:16px 0 calc(18px + env(safe-area-inset-bottom,0px))}
 .copy{text-align:center;font-size:12px;color:#a3aab8;margin:0}
 
@@ -404,10 +404,11 @@ footer{margin-top:auto;padding:16px 0 calc(18px + env(safe-area-inset-bottom,0px
   position:fixed;inset:0;z-index:100;background:rgba(8,10,16,.93);
   display:flex;align-items:center;justify-content:center;
 }
-.lb figure{position:relative;width:100vw;height:100vh;margin:0;
+/* dvh:跟随手机地址栏呼出/收起动态伸缩,标题行与缩放栏不会被挤出屏幕 */
+.lb figure{position:relative;width:100vw;height:100vh;height:100dvh;margin:0;
   display:flex;align-items:center;justify-content:center}
 .lb-stage{
-  width:100vw;height:100vh;
+  width:100vw;height:100vh;height:100dvh;
   overflow:hidden;display:flex;align-items:center;justify-content:center;
   background:#0a0c11;cursor:zoom-in;touch-action:none;
 }
@@ -579,24 +580,22 @@ footer{margin-top:auto;padding:16px 0 calc(18px + env(safe-area-inset-bottom,0px
   .ms-btn::after{margin-left:3px}
   #viewSeg{flex:1 1 auto;min-width:0;margin-right:0;order:0}
   #viewSeg button{flex:1;text-align:center;padding:6px 0}
-  .tb-filters{display:flex;flex:1 1 100%;flex-wrap:wrap;gap:5px;min-width:0;align-items:stretch;order:6}
-  .tb-filters > *{box-sizing:border-box}
+  .tb-filters{display:contents}
   .toolbar{transition:transform .28s ease}
   .toolbar.tb-hidden{transform:translateY(-115%)}
-  .tb-break{display:block;flex-basis:100%;height:0}
+  .tb-break{display:none}
   .search-wrap{flex:1 1 auto;min-width:0;cursor:default;height:24px;position:relative}
-  .sort-group{flex:0 0 auto;min-width:0;height:24px}
+  .sort-group{flex:1 1 calc((100% - 12px)/3);min-width:0;height:24px}
   .s-ico{display:flex;left:8px}
   .s-btn{display:none}
   #search{height:24px;width:100%;min-width:0;opacity:1;padding:0 8px 0 36px;border-color:var(--line);background:#fbfcfe;font-size:12px}
   .sort-group .ms-btn{height:100%;width:100%;justify-content:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 6px}
   .sort-group .dir-btn{height:100%;width:28px;padding:0}
-  .tb-filters > .mselect{flex:1 1 0;min-width:0;order:5}
+  .tb-filters > .mselect{flex:1 1 calc((100% - 12px)/3);min-width:0;order:5;height:24px}
   .tb-pay{order:1;margin-left:0}
   .tb-pay.closed{margin-left:-6px}
-  #searchWrap{order:2}
+  #searchWrap{order:2;flex:1 1 100%;min-width:100%}
   .sort-group{order:3}
-  .tb-break{order:4}
   .seg{order:0;flex:1 1 auto;min-width:0;margin-right:0}
   .seg button{flex:1 1 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px;padding:4px 2px}
   .mselect .ms-btn{height:100%;width:100%;justify-content:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 6px}
@@ -700,7 +699,7 @@ footer{margin-top:auto;padding:16px 0 calc(18px + env(safe-area-inset-bottom,0px
 <aside id="navDrawer" class="nav-drawer" aria-label="分类菜单">
   <div class="nav-head">李有猪的小卖部</div>
   <nav id="navList"></nav>
-  <div class="nav-date">数据生成于 2026-09-11 02:54</div>
+  <div class="nav-date">数据生成于 2026-09-11 03:05</div>
   <div class="nav-foot">
     <a class="nav-link" href="https://www.mousetester.cn/?utm_source=keyboard" target="_blank" rel="noopener">鼠标测试工具
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg>
@@ -832,7 +831,7 @@ footer{margin-top:auto;padding:16px 0 calc(18px + env(safe-area-inset-bottom,0px
 (function(){
 'use strict';
 
-var GEN_DATE = '2026-09-11 02:54';
+var GEN_DATE = '2026-09-11 03:05';
 var FIELDS = ['品牌','型号','键位','轴体','颜色','无线','购入价','购买时间','购买渠道','闲置价格'];
 
 var DEFAULT_DATA = JSON.parse(document.getElementById('kb-data').textContent);
