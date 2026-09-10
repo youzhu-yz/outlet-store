@@ -700,7 +700,7 @@ footer{margin-top:auto;padding:16px 0 calc(18px + env(safe-area-inset-bottom,0px
 <aside id="navDrawer" class="nav-drawer" aria-label="分类菜单">
   <div class="nav-head">李有猪的小卖部</div>
   <nav id="navList"></nav>
-  <div class="nav-date">数据生成于 2026-09-11 02:49</div>
+  <div class="nav-date">数据生成于 2026-09-11 02:54</div>
   <div class="nav-foot">
     <a class="nav-link" href="https://www.mousetester.cn/?utm_source=keyboard" target="_blank" rel="noopener">鼠标测试工具
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg>
@@ -832,7 +832,7 @@ footer{margin-top:auto;padding:16px 0 calc(18px + env(safe-area-inset-bottom,0px
 (function(){
 'use strict';
 
-var GEN_DATE = '2026-09-11 02:49';
+var GEN_DATE = '2026-09-11 02:54';
 var FIELDS = ['品牌','型号','键位','轴体','颜色','无线','购入价','购买时间','购买渠道','闲置价格'];
 
 var DEFAULT_DATA = JSON.parse(document.getElementById('kb-data').textContent);
@@ -1548,6 +1548,9 @@ function openLightbox(item, i, listOverride){
   lbRot = 0;
   resetZoom();
   $('#lightbox').classList.remove('hidden');
+  /* 大图打开期间锁定背景页面滚动 */
+  document.documentElement.style.overflow = 'hidden';
+  document.body.style.overflow = 'hidden';
   showLb();
 }
 function showLb(){
@@ -1582,6 +1585,8 @@ function navLb(d){
 }
 function closeLb(){
   $('#lightbox').classList.add('hidden');
+  document.documentElement.style.overflow = '';
+  document.body.style.overflow = '';
   var img = $('#lbImg');
   /* 换成 1px 占位图,立即释放已解码的大位图,避免后续滚动卡顿 */
   img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
