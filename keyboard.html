@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>键盘</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8F%AA%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%9B%92%3C/text%3E%3C/svg%3E">
 <style>
 :root{
   --bg:#eef1f6; --card:#ffffff; --ink:#20242e; --muted:#7b8394; --line:#e6e9f0;
@@ -378,9 +378,26 @@ th.c-img{white-space:nowrap;width:1%}
   text-align:center;color:var(--muted);padding:70px 0;font-size:14px;
 }
 
-/* ---------- 页脚 ---------- */
-footer{max-width:1200px;margin:34px auto 0;padding:0 16px 56px}
-.copy{text-align:center;font-size:12px;color:#a3aab8;margin-top:18px}
+/* ---------- 页脚:贴整个页面最底部(内容不足一屏时贴屏幕底,超出时在文档末尾) ---------- */
+body{display:flex;flex-direction:column;min-height:100vh}
+main{flex:1 0 auto}
+footer{margin-top:auto;padding:16px 0 calc(18px + env(safe-area-inset-bottom,0px))}
+.copy{text-align:center;font-size:12px;color:#a3aab8;margin:0}
+
+/* ---------- 回到顶部:右下角贴边,滚动一段后出现 ---------- */
+.top-btn{
+  position:fixed;right:0;bottom:96px;z-index:40;
+  width:46px;height:46px;border:none;cursor:pointer;
+  background:#fff;color:#61666d;
+  border-radius:12px 0 0 12px;
+  box-shadow:0 2px 10px rgba(16,24,40,.16), 0 0 0 1px rgba(16,24,40,.05);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;visibility:hidden;transform:translateX(10px);
+  transition:opacity .22s ease, transform .22s ease, visibility .22s;
+}
+.top-btn.show{opacity:1;visibility:visible;transform:none}
+.top-btn:hover{color:var(--accent);background:#f3f6ff}
+.top-btn:active{transform:scale(.94)}
 
 /* ---------- 灯箱(大图) ---------- */
 .lb{
@@ -683,7 +700,7 @@ footer{max-width:1200px;margin:34px auto 0;padding:0 16px 56px}
 <aside id="navDrawer" class="nav-drawer" aria-label="分类菜单">
   <div class="nav-head">李有猪的小卖部</div>
   <nav id="navList"></nav>
-  <div class="nav-date">数据生成于 2026-09-11 02:28</div>
+  <div class="nav-date">数据生成于 2026-09-11 02:49</div>
   <div class="nav-foot">
     <a class="nav-link" href="https://www.mousetester.cn/?utm_source=keyboard" target="_blank" rel="noopener">鼠标测试工具
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg>
@@ -780,6 +797,9 @@ footer{max-width:1200px;margin:34px auto 0;padding:0 16px 56px}
   <div class="copy" style="color:#c6ccd8">此处禁止堆放垃圾，发现直接扔掉</div>
 </footer>
 
+<!-- 回到顶部 -->
+<button type="button" class="top-btn" id="topBtn" title="回到顶部" aria-label="回到顶部"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+
 <!-- 大图灯箱 -->
 <div id="lightbox" class="lb hidden">
   <button class="lb-x" id="lbClose" title="关闭">×</button>
@@ -805,14 +825,14 @@ footer{max-width:1200px;margin:34px auto 0;padding:0 16px 56px}
 <div id="toast" class="hidden"></div>
 
 <script id="kb-data" type="application/json">
-[{"品牌":"ikbc","型号":"W200","壳体":"","键帽":"迷失森林","原厂壳体":"","原厂键帽":"无","键位":"80%","轴体":"Cherry红轴","颜色":"白","无线":"是","购入价":378,"壳体购入价":"","键帽购入价":112,"购买时间":"2019-07-31","购买渠道":"京东","闲置价格":30,"备注":"","已出售":true,"编号":"01","缩略图":["thumbs/keyboard/ikbc W200.jpg"],"原图":["images/keyboard/ikbc W200.jpg"]},{"品牌":"CHERRY","型号":"MX1.0 TKL","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"80%","轴体":"Cherry青轴","颜色":"黑","无线":"否","购入价":237,"壳体购入价":"","键帽购入价":"","购买时间":"2020-04-17","购买渠道":"京东","闲置价格":10,"备注":"","已出售":true,"编号":"02","缩略图":["thumbs/keyboard/CHERRY MX1.0 TKL.jpg"],"原图":["images/keyboard/CHERRY MX1.0 TKL.jpg"]},{"品牌":"罗技","型号":"G913 TKL","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"80%","轴体":"Cherry T轴","颜色":"银/白","无线":"是","购入价":1447,"壳体购入价":"","键帽购入价":"","购买时间":"2020-12-05","购买渠道":"京东","闲置价格":399,"备注":"A键偶尔失灵，需要维修一下","已出售":false,"编号":"03","缩略图":["thumbs/keyboard/罗技 G913 TKL.jpg"],"原图":["images/keyboard/罗技 G913 TKL.jpg"]},{"品牌":"AKKO","型号":"3098N 海洋之星","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"96%","轴体":"TTC月白轴","颜色":"蓝","无线":"是","购入价":549,"壳体购入价":"","键帽购入价":"","购买时间":"2020-06-03","购买渠道":"京东","闲置价格":9999,"备注":"","已出售":true,"编号":"04","缩略图":[],"原图":[]},{"品牌":"宁芝","型号":"T系列","壳体":"","键帽":"KEYMOJI 蒙德里安","原厂壳体":"","原厂键帽":"有","键位":"80%","轴体":"静电容轴35g","颜色":"白","无线":"否","购入价":684,"壳体购入价":"","键帽购入价":239,"购买时间":"2022-09-02","购买渠道":"京东","闲置价格":200,"备注":"","已出售":true,"编号":"05","缩略图":["thumbs/keyboard/宁芝 T系列.jpg"],"原图":["images/keyboard/宁芝 T系列.jpg"]},{"品牌":"VGN","型号":"S99","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"96%","轴体":"凯华极光冰淇淋轴","颜色":"远山蓝","无线":"是","购入价":419,"壳体购入价":"","键帽购入价":"","购买时间":"2023-06-13","购买渠道":"京东","闲置价格":80,"备注":"","已出售":true,"编号":"06","缩略图":["thumbs/keyboard/VGN S99.jpg"],"原图":["images/keyboard/VGN S99.jpg"]},{"品牌":"ROG","型号":"夜魔","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"75%","轴体":"NX雪武白轴","颜色":"月耀白","无线":"是","购入价":1777,"壳体购入价":"","键帽购入价":"","购买时间":"2023-11-05","购买渠道":"京东","闲置价格":800,"备注":"","已出售":true,"编号":"07","缩略图":["thumbs/keyboard/ROG 夜魔.jpg"],"原图":["images/keyboard/ROG 夜魔.jpg"]},{"品牌":"IQUNIX","型号":"MG65","壳体":"","键帽":"","原厂壳体":"","原厂键帽":" ","键位":"65%","轴体":"轻羽轴","颜色":"雾苏白","无线":"是","购入价":691,"壳体购入价":"","键帽购入价":"","购买时间":"2024-08-30","购买渠道":"淘宝","闲置价格":249,"备注":"","已出售":true,"编号":"08","缩略图":["thumbs/keyboard/IQUNIX MG65.jpg"],"原图":["images/keyboard/IQUNIX MG65.jpg"]},{"品牌":"MelGeek","型号":"MADE68","壳体":"","键帽":"AKKO EVA 霓虹","原厂壳体":"","原厂键帽":"有","键位":"65%","轴体":"凯华青峰轴","颜色":"白/紫","无线":"否","购入价":631,"壳体购入价":"","键帽购入价":229,"购买时间":"2024-09-03","购买渠道":"淘宝","闲置价格":249,"备注":"","已出售":false,"编号":"09","缩略图":["thumbs/keyboard/MelGeek MADE68.jpg"],"原图":["images/keyboard/MelGeek MADE68.jpg"]},{"品牌":"MelGeek","型号":"奇点80","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"75%","轴体":"TTC反斗万磁王白轴","颜色":"白/黑","无线":"否","购入价":1989,"壳体购入价":"","键帽购入价":"","购买时间":"2025-12-12","购买渠道":"京东","闲置价格":1300,"备注":"","已出售":false,"编号":"10","缩略图":["thumbs/keyboard/MelGeek 奇点80.jpg"],"原图":["images/keyboard/MelGeek 奇点80.jpg"]},{"品牌":"MelGeek","型号":"VIVA63","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"60%","轴体":"TTC万磁王PRO轴","颜色":"冰魄白","无线":"否","购入价":888,"壳体购入价":"","键帽购入价":"","购买时间":"2026-08-17","购买渠道":"京东","闲置价格":700,"备注":"","已出售":false,"编号":"11","缩略图":["thumbs/keyboard/MelGeek VIVA63.jpg"],"原图":["images/keyboard/MelGeek VIVA63.jpg"]},{"品牌":"IQUNIX","型号":"A80 探索机","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"75%","轴体":"Cherry青轴","颜色":"蓝/黄","无线":"是","购入价":696,"壳体购入价":"","键帽购入价":"","购买时间":"2020-10-21","购买渠道":"淘宝","闲置价格":100,"备注":"","已出售":true,"编号":"12","缩略图":["thumbs/keyboard/IQUNIX A80 探索机.jpg"],"原图":["images/keyboard/IQUNIX A80 探索机.jpg"]},{"品牌":"HEAVY SHELL","型号":"Kira 96","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"96%","轴体":"TTC金粉轴","颜色":"白","无线":"否","购入价":1339,"壳体购入价":"","键帽购入价":"","购买时间":"2021-04-27","购买渠道":"淘宝","闲置价格":9999,"备注":"","已出售":true,"编号":"13","缩略图":[],"原图":[]},{"品牌":"LEOPOLD","型号":"FC980M","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"96%","轴体":"流星灰轴","颜色":"红/蓝白","无线":"否","购入价":901,"壳体购入价":"","键帽购入价":"","购买时间":"2023-06-01","购买渠道":"淘宝","闲置价格":200,"备注":"","已出售":true,"编号":"14","缩略图":["thumbs/keyboard/LEOPOLD FC980M.jpg"],"原图":["images/keyboard/LEOPOLD FC980M.jpg"]},{"品牌":"Keydous","型号":"NJ80","壳体":"","键帽":"JDA 草莓益生菌","原厂壳体":"","原厂键帽":"无","键位":"75%","轴体":"","颜色":"白","无线":"是","购入价":492,"壳体购入价":"","键帽购入价":222,"购买时间":"2021-11-01","购买渠道":"淘宝","闲置价格":100,"备注":"无线适配器丢失","已出售":true,"编号":"15","缩略图":["thumbs/keyboard/Keydous NJ80.jpg"],"原图":["images/keyboard/Keydous NJ80.jpg"]},{"品牌":"IQUNIX","型号":"ZX75 重力波","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"75%","轴体":"快银轴","颜色":"白/灰黄","无线":"是","购入价":868,"壳体购入价":"","键帽购入价":"","购买时间":"2021-11-04","购买渠道":"淘宝","闲置价格":200,"备注":"","已出售":true,"编号":"16","缩略图":["thumbs/keyboard/IQUNIX ZX75 重力波.jpg"],"原图":["images/keyboard/IQUNIX ZX75 重力波.jpg"]},{"品牌":"HEAVY SHELL","型号":"Barix 87","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"80%","轴体":"茶轴","颜色":"灰","无线":"否","购入价":1099,"壳体购入价":"","键帽购入价":"","购买时间":"2020-03-28","购买渠道":"淘宝","闲置价格":9999,"备注":"","已出售":true,"编号":"17","缩略图":[],"原图":[]},{"品牌":"MAXKEY","型号":"TADA68 PRO","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"65%","轴体":"白光银轴","颜色":"黑/白灰","无线":"是","购入价":535,"壳体购入价":"","键帽购入价":"","购买时间":"2017-11-15","购买渠道":"淘宝","闲置价格":20,"备注":"脚垫掉了，有点放不平，需要稍微DIY一下","已出售":true,"编号":"18","缩略图":["thumbs/keyboard/MAXKEY TADA68 PRO.jpg"],"原图":["images/keyboard/MAXKEY TADA68 PRO.jpg"]},{"品牌":"LEOPOLD","型号":"FC660M","壳体":"红 阳极铝","键帽":"白 无刻","原厂壳体":"无","原厂键帽":"无","键位":"65%","轴体":"Cherry茶轴","颜色":"黑","无线":"否","购入价":557,"壳体购入价":649,"键帽购入价":198,"购买时间":"2013-12-12","购买渠道":"淘宝","闲置价格":300,"备注":"","已出售":false,"编号":"19","缩略图":["thumbs/keyboard/LEOPOLD FC660M.jpg"],"原图":["images/keyboard/LEOPOLD FC660M.jpg"]},{"品牌":"IQUNIX","型号":"Q66 银迹","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"65%","轴体":"TTC圣熊猫轴","颜色":"白/灰","无线":"是","购入价":818,"壳体购入价":"","键帽购入价":"","购买时间":"2022-10-24","购买渠道":"淘宝","闲置价格":249,"备注":"","已出售":true,"编号":"20","缩略图":["thumbs/keyboard/IQUNIX Q66 银迹.jpg"],"原图":["images/keyboard/IQUNIX Q66 银迹.jpg"]},{"品牌":"狼派","型号":"HK35","壳体":"","键帽":"","原厂壳体":"","原厂键帽":"","键位":"30%","轴体":"佳达隆磁玉gaming","颜色":"银/白","无线":"否","购入价":497,"壳体购入价":"","键帽购入价":"","购买时间":"2025-09-01","购买渠道":"淘宝","闲置价格":150,"备注":"","已出售":false,"编号":"21","缩略图":["thumbs/keyboard/狼派 HK35.jpg"],"原图":["images/keyboard/狼派 HK35.jpg"]},{"品牌":"Wooting","型号":"60HE","壳体":"AIM60 白 电泳","键帽":"JKDK 白绿（GOW）","原厂壳体":"有","原厂键帽":"有","键位":"60%","轴体":"","颜色":"黑","无线":"否","购入价":1300,"壳体购入价":498,"键帽购入价":138,"购买时间":"2023-10-01","购买渠道":"官网","闲置价格":888,"备注":"送XVX 等高线（¥129）","已出售":true,"编号":"22","缩略图":["thumbs/keyboard/Wooting 60HE.jpg"],"原图":["images/keyboard/Wooting 60HE.jpg"]}]
+[{"品牌":"ikbc","型号":"W200","键帽":"迷失森林","原厂键帽":"无","键位":"80%","轴体":"Cherry红轴","颜色":"白","无线":"是","购入价":378,"键帽购入价":112,"购买时间":"2019-07-31","购买渠道":"京东","闲置价格":30,"已出售":true,"编号":"01","缩略图":["thumbs/keyboard/ikbc W200.jpg"],"原图":["images/keyboard/ikbc W200.jpg"]},{"品牌":"CHERRY","型号":"MX1.0 TKL","键位":"80%","轴体":"Cherry青轴","颜色":"黑","无线":"否","购入价":237,"购买时间":"2020-04-17","购买渠道":"京东","闲置价格":10,"已出售":true,"编号":"02","缩略图":["thumbs/keyboard/CHERRY MX1.0 TKL.jpg"],"原图":["images/keyboard/CHERRY MX1.0 TKL.jpg"]},{"品牌":"罗技","型号":"G913 TKL","键位":"80%","轴体":"Cherry T轴","颜色":"银/白","无线":"是","购入价":1447,"购买时间":"2020-12-05","购买渠道":"京东","闲置价格":399,"备注":"A键偶尔失灵，需要维修一下","已出售":false,"编号":"03","缩略图":["thumbs/keyboard/罗技 G913 TKL.jpg"],"原图":["images/keyboard/罗技 G913 TKL.jpg"]},{"品牌":"AKKO","型号":"3098N 海洋之星","键位":"96%","轴体":"TTC月白轴","颜色":"蓝","无线":"是","购入价":549,"购买时间":"2020-06-03","购买渠道":"京东","闲置价格":9999,"已出售":true,"编号":"04","缩略图":[],"原图":[]},{"品牌":"宁芝","型号":"T系列","键帽":"KEYMOJI 蒙德里安","原厂键帽":"有","键位":"80%","轴体":"静电容轴35g","颜色":"白","无线":"否","购入价":684,"键帽购入价":239,"购买时间":"2022-09-02","购买渠道":"京东","闲置价格":200,"已出售":true,"编号":"05","缩略图":["thumbs/keyboard/宁芝 T系列.jpg"],"原图":["images/keyboard/宁芝 T系列.jpg"]},{"品牌":"VGN","型号":"S99","键位":"96%","轴体":"凯华极光冰淇淋轴","颜色":"远山蓝","无线":"是","购入价":419,"购买时间":"2023-06-13","购买渠道":"京东","闲置价格":80,"已出售":true,"编号":"06","缩略图":["thumbs/keyboard/VGN S99.jpg"],"原图":["images/keyboard/VGN S99.jpg"]},{"品牌":"ROG","型号":"夜魔","键位":"75%","轴体":"NX雪武白轴","颜色":"月耀白","无线":"是","购入价":1777,"购买时间":"2023-11-05","购买渠道":"京东","闲置价格":800,"已出售":true,"编号":"07","缩略图":["thumbs/keyboard/ROG 夜魔.jpg"],"原图":["images/keyboard/ROG 夜魔.jpg"]},{"品牌":"IQUNIX","型号":"MG65","原厂键帽":" ","键位":"65%","轴体":"轻羽轴","颜色":"雾苏白","无线":"是","购入价":691,"购买时间":"2024-08-30","购买渠道":"淘宝","闲置价格":249,"已出售":true,"编号":"08","缩略图":["thumbs/keyboard/IQUNIX MG65.jpg"],"原图":["images/keyboard/IQUNIX MG65.jpg"]},{"品牌":"MelGeek","型号":"MADE68","键帽":"AKKO EVA 霓虹","原厂键帽":"有","键位":"65%","轴体":"凯华青峰轴","颜色":"白/紫","无线":"否","购入价":631,"键帽购入价":229,"购买时间":"2024-09-03","购买渠道":"淘宝","闲置价格":249,"已出售":false,"编号":"09","缩略图":["thumbs/keyboard/MelGeek MADE68.jpg"],"原图":["images/keyboard/MelGeek MADE68.jpg"]},{"品牌":"MelGeek","型号":"奇点80","键位":"75%","轴体":"TTC反斗万磁王白轴","颜色":"白/黑","无线":"否","购入价":1989,"购买时间":"2025-12-12","购买渠道":"京东","闲置价格":1300,"已出售":false,"编号":"10","缩略图":["thumbs/keyboard/MelGeek 奇点80.jpg"],"原图":["images/keyboard/MelGeek 奇点80.jpg"]},{"品牌":"MelGeek","型号":"VIVA63","键位":"60%","轴体":"TTC万磁王PRO轴","颜色":"冰魄白","无线":"否","购入价":888,"购买时间":"2026-08-17","购买渠道":"京东","闲置价格":700,"已出售":false,"编号":"11","缩略图":["thumbs/keyboard/MelGeek VIVA63.jpg"],"原图":["images/keyboard/MelGeek VIVA63.jpg"]},{"品牌":"IQUNIX","型号":"A80 探索机","键位":"75%","轴体":"Cherry青轴","颜色":"蓝/黄","无线":"是","购入价":696,"购买时间":"2020-10-21","购买渠道":"淘宝","闲置价格":100,"已出售":true,"编号":"12","缩略图":["thumbs/keyboard/IQUNIX A80 探索机.jpg"],"原图":["images/keyboard/IQUNIX A80 探索机.jpg"]},{"品牌":"HEAVY SHELL","型号":"Kira 96","键位":"96%","轴体":"TTC金粉轴","颜色":"白","无线":"否","购入价":1339,"购买时间":"2021-04-27","购买渠道":"淘宝","闲置价格":9999,"已出售":true,"编号":"13","缩略图":[],"原图":[]},{"品牌":"LEOPOLD","型号":"FC980M","键位":"96%","轴体":"流星灰轴","颜色":"红/蓝白","无线":"否","购入价":901,"购买时间":"2023-06-01","购买渠道":"淘宝","闲置价格":200,"已出售":true,"编号":"14","缩略图":["thumbs/keyboard/LEOPOLD FC980M.jpg"],"原图":["images/keyboard/LEOPOLD FC980M.jpg"]},{"品牌":"Keydous","型号":"NJ80","键帽":"JDA 草莓益生菌","原厂键帽":"无","键位":"75%","颜色":"白","无线":"是","购入价":492,"键帽购入价":222,"购买时间":"2021-11-01","购买渠道":"淘宝","闲置价格":100,"备注":"无线适配器丢失","已出售":true,"编号":"15","缩略图":["thumbs/keyboard/Keydous NJ80.jpg"],"原图":["images/keyboard/Keydous NJ80.jpg"]},{"品牌":"IQUNIX","型号":"ZX75 重力波","键位":"75%","轴体":"快银轴","颜色":"白/灰黄","无线":"是","购入价":868,"购买时间":"2021-11-04","购买渠道":"淘宝","闲置价格":200,"已出售":true,"编号":"16","缩略图":["thumbs/keyboard/IQUNIX ZX75 重力波.jpg"],"原图":["images/keyboard/IQUNIX ZX75 重力波.jpg"]},{"品牌":"HEAVY SHELL","型号":"Barix 87","键位":"80%","轴体":"茶轴","颜色":"灰","无线":"否","购入价":1099,"购买时间":"2020-03-28","购买渠道":"淘宝","闲置价格":9999,"已出售":true,"编号":"17","缩略图":[],"原图":[]},{"品牌":"MAXKEY","型号":"TADA68 PRO","键位":"65%","轴体":"白光银轴","颜色":"黑/白灰","无线":"是","购入价":535,"购买时间":"2017-11-15","购买渠道":"淘宝","闲置价格":20,"备注":"脚垫掉了，有点放不平，需要稍微DIY一下","已出售":true,"编号":"18","缩略图":["thumbs/keyboard/MAXKEY TADA68 PRO.jpg"],"原图":["images/keyboard/MAXKEY TADA68 PRO.jpg"]},{"品牌":"LEOPOLD","型号":"FC660M","壳体":"红 阳极铝","键帽":"白 无刻","原厂壳体":"无","原厂键帽":"无","键位":"65%","轴体":"Cherry茶轴","颜色":"黑","无线":"否","购入价":557,"壳体购入价":649,"键帽购入价":198,"购买时间":"2013-12-12","购买渠道":"淘宝","闲置价格":300,"已出售":false,"编号":"19","缩略图":["thumbs/keyboard/LEOPOLD FC660M.jpg"],"原图":["images/keyboard/LEOPOLD FC660M.jpg"]},{"品牌":"IQUNIX","型号":"Q66 银迹","键位":"65%","轴体":"TTC圣熊猫轴","颜色":"白/灰","无线":"是","购入价":818,"购买时间":"2022-10-24","购买渠道":"淘宝","闲置价格":249,"已出售":true,"编号":"20","缩略图":["thumbs/keyboard/IQUNIX Q66 银迹.jpg"],"原图":["images/keyboard/IQUNIX Q66 银迹.jpg"]},{"品牌":"狼派","型号":"HK35","键位":"30%","轴体":"佳达隆磁玉gaming","颜色":"银/白","无线":"否","购入价":497,"购买时间":"2025-09-01","购买渠道":"淘宝","闲置价格":150,"已出售":false,"编号":"21","缩略图":["thumbs/keyboard/狼派 HK35.jpg"],"原图":["images/keyboard/狼派 HK35.jpg"]},{"品牌":"Wooting","型号":"60HE","壳体":"AIM60 白 电泳","键帽":"JKDK 白绿（GOW）","原厂壳体":"有","原厂键帽":"有","键位":"60%","颜色":"黑","无线":"否","购入价":1300,"壳体购入价":498,"键帽购入价":138,"购买时间":"2023-10-01","购买渠道":"官网","闲置价格":888,"备注":"送XVX 等高线（¥129）","已出售":true,"编号":"22","缩略图":["thumbs/keyboard/Wooting 60HE.jpg"],"原图":["images/keyboard/Wooting 60HE.jpg"]}]
 </script>
 
 <script>
 (function(){
 'use strict';
 
-var GEN_DATE = '2026-09-11 02:28';
+var GEN_DATE = '2026-09-11 02:49';
 var FIELDS = ['品牌','型号','键位','轴体','颜色','无线','购入价','购买时间','购买渠道','闲置价格'];
 
 var DEFAULT_DATA = JSON.parse(document.getElementById('kb-data').textContent);
@@ -1886,10 +1906,14 @@ function bind(){
     lbz = {z:1, tx:0, ty:0};
     fitStage();
   });
+  /* 回到顶部按钮:滚过 400px 出现 */
+  var topBtn = $('#topBtn');
+  topBtn.addEventListener('click', function(){ window.scrollTo({top:0, behavior:'smooth'}); });
   /* 手机端:累计滑动超过 20px 才切换顶部栏(下滑收起,上滑出现);页面顶部 240px 内常显 */
   var lastY = window.scrollY;
   window.addEventListener('scroll', function(){
     if(searchOpen) closeSearch();
+    topBtn.classList.toggle('show', window.scrollY > 400);
     var bar = document.querySelector('.toolbar');
     if(!window.matchMedia('(max-width:680px)').matches){
       bar.classList.remove('tb-hidden');
