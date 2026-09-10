@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>键盘</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%8C%A8%EF%B8%8F%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8F%AA%3C/text%3E%3C/svg%3E">
 <style>
 :root{
   --bg:#eef1f6; --card:#ffffff; --ink:#20242e; --muted:#7b8394; --line:#e6e9f0;
@@ -402,6 +402,11 @@ footer{max-width:1200px;margin:34px auto 0;padding:0 16px 56px}
   max-width:100%;max-height:100%;object-fit:contain;
   user-select:none;-webkit-user-drag:none;
 }
+.lb-loading{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  color:#8b93a7;font-size:14px;letter-spacing:2px;
+  text-shadow:0 1px 4px rgba(0,0,0,.8);pointer-events:none;z-index:2;
+}
 .lb figcaption{
   position:absolute;left:0;right:0;top:60px;text-align:center;
   color:#e8ebf2;font-size:19.5px;font-weight:700;letter-spacing:.5px;
@@ -413,7 +418,7 @@ footer{max-width:1200px;margin:34px auto 0;padding:0 16px 56px}
 }
 .lb-zoom{
   position:absolute;bottom:62px;left:50%;transform:translateX(-50%);
-  display:flex;align-items:center;gap:2px;
+  display:flex;flex-wrap:nowrap;align-items:center;gap:2px;
   background:rgba(20,24,34,.55);border-radius:999px;padding:4px;
   backdrop-filter:blur(6px);
 }
@@ -591,12 +596,15 @@ footer{max-width:1200px;margin:34px auto 0;padding:0 16px 56px}
   .pay-x{display:block}
   .pay-wrap{max-width:none;max-height:52vh;display:flex;justify-content:center}
   .lb-nav{width:38px;height:38px}
-  .lb-zoom{gap:1px;padding:3px}
+  .lb-zoom{gap:1px;padding:3px;flex-wrap:nowrap;bottom:calc(20px + env(safe-area-inset-bottom,0px))}
   .lb-zoom button{width:28px;height:28px;font-size:14px}
   .lb-zoom .val{min-width:38px;font-size:11px}
   .lb-zoom button.txt{padding:0 7px;font-size:11.5px}
   .lb-nav.prev{left:8px}
   .lb-nav.next{right:8px}
+  /* 手机端:标题单行贴顶,副行跟随,超长省略 */
+  .lb figcaption{top:40px;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 14px}
+  .lb-cap-sub{top:66px;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 14px}
 }
 @keyframes popUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
 @keyframes popOutUp{from{opacity:1}to{opacity:0;transform:translateY(24px)}}
@@ -673,9 +681,9 @@ footer{max-width:1200px;margin:34px auto 0;padding:0 16px 56px}
 
 <div id="navMask" class="nav-mask"></div>
 <aside id="navDrawer" class="nav-drawer" aria-label="分类菜单">
-  <div class="nav-head">闲置物品</div>
+  <div class="nav-head">李有猪的小卖部</div>
   <nav id="navList"></nav>
-  <div class="nav-date">数据生成于 2026-09-11 02:07</div>
+  <div class="nav-date">数据生成于 2026-09-11 02:28</div>
   <div class="nav-foot">
     <a class="nav-link" href="https://www.mousetester.cn/?utm_source=keyboard" target="_blank" rel="noopener">鼠标测试工具
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg>
@@ -765,7 +773,7 @@ footer{max-width:1200px;margin:34px auto 0;padding:0 16px 56px}
     </table>
   </section>
 
-  <div id="emptyTip" class="empty hidden">😕 没有匹配的键盘,换个关键词试试</div>
+  <div id="emptyTip" class="empty hidden">😕 没有匹配的商品,换个关键词试试</div>
 </main>
 
 <footer>
@@ -778,6 +786,7 @@ footer{max-width:1200px;margin:34px auto 0;padding:0 16px 56px}
   <button class="lb-nav prev" id="lbPrev" title="上一张"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
   <figure>
     <div class="lb-stage" id="lbStage"><img id="lbImg" alt="" draggable="false"></div>
+    <div class="lb-loading hidden" id="lbLoading">加载中 …</div>
     <div class="lb-zoom">
       <button type="button" id="lbMinus" title="缩小">−</button>
       <span id="lbZoomVal" class="val">100%</span>
@@ -803,7 +812,7 @@ footer{max-width:1200px;margin:34px auto 0;padding:0 16px 56px}
 (function(){
 'use strict';
 
-var GEN_DATE = '2026-09-11 02:07';
+var GEN_DATE = '2026-09-11 02:28';
 var FIELDS = ['品牌','型号','键位','轴体','颜色','无线','购入价','购买时间','购买渠道','闲置价格'];
 
 var DEFAULT_DATA = JSON.parse(document.getElementById('kb-data').textContent);
@@ -1523,9 +1532,15 @@ function openLightbox(item, i, listOverride){
 }
 function showLb(){
   var img = $('#lbImg');
+  var ld = $('#lbLoading');
+  var done = function(){ fitStage(); img.style.visibility=''; if(ld) ld.classList.add('hidden'); };
+  img.onload = done;
+  img.onerror = done;
+  /* 立即丢弃旧帧:先隐藏旧图再换地址,不用等新图加载完才切换 */
+  img.style.visibility='hidden';
+  if(ld) ld.classList.remove('hidden');
   img.src = LB.list[LB.idx];
-  img.onload = fitStage;
-  if(img.complete && img.naturalWidth) fitStage();
+  if(img.complete && img.naturalWidth) done();
   $('#lbCap').textContent = LB.title+'　·　'+(LB.idx+1)+' / '+LB.list.length;
   var fac = [];
   ['原厂壳体','原厂键帽'].forEach(function(k){
@@ -1552,6 +1567,9 @@ function closeLb(){
   img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
   img.style.transform = '';
   img.style.willChange = 'auto';
+  img.style.visibility = '';
+  var ld = $('#lbLoading');
+  if(ld) ld.classList.add('hidden');
   resetZoom();
 }
 
