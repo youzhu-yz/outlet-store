@@ -384,7 +384,7 @@ main{flex:1 0 auto;width:100%}
 footer{margin-top:auto;padding:16px 0 calc(18px + env(safe-area-inset-bottom,0px))}
 .copy{text-align:center;font-size:12px;color:#a3aab8;margin:0}
 
-/* ---------- 回到顶部:右下角贴边,滚动一段后出现 ---------- */
+/* ---------- 回到顶部:右下角贴边,滚动停止2s收纳只露一小截,滑动时滑出 ---------- */
 .top-btn{
   position:fixed;right:0;bottom:96px;z-index:40;
   width:46px;height:46px;border:none;cursor:pointer;
@@ -392,12 +392,13 @@ footer{margin-top:auto;padding:16px 0 calc(18px + env(safe-area-inset-bottom,0px
   border-radius:12px 0 0 12px;
   box-shadow:0 2px 10px rgba(16,24,40,.16), 0 0 0 1px rgba(16,24,40,.05);
   display:flex;align-items:center;justify-content:center;
-  opacity:0;visibility:hidden;transform:translateX(10px);
-  transition:opacity .22s ease, transform .22s ease, visibility .22s;
+  opacity:0;visibility:hidden;transform:translateX(46px);
+  transition:opacity .25s ease, transform .3s cubic-bezier(.2,.9,.3,1), visibility .25s;
 }
-.top-btn.show{opacity:1;visibility:visible;transform:none}
+.top-btn.show{opacity:1;visibility:visible;transform:translateX(0)}
+.top-btn.show.tucked{transform:translateX(34px)}
 .top-btn:hover{color:var(--accent);background:#f3f6ff}
-.top-btn:active{transform:scale(.94)}
+.top-btn:active{filter:brightness(.92)}
 
 /* ---------- 灯箱(大图) ---------- */
 .lb{
@@ -699,7 +700,7 @@ footer{margin-top:auto;padding:16px 0 calc(18px + env(safe-area-inset-bottom,0px
 <aside id="navDrawer" class="nav-drawer" aria-label="分类菜单">
   <div class="nav-head">李有猪的小卖部</div>
   <nav id="navList"></nav>
-  <div class="nav-date">数据生成于 2026-09-11 03:05</div>
+  <div class="nav-date">数据生成于 2026-09-11 03:16</div>
   <div class="nav-foot">
     <a class="nav-link" href="https://www.mousetester.cn/?utm_source=keyboard" target="_blank" rel="noopener">鼠标测试工具
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg>
@@ -831,7 +832,7 @@ footer{margin-top:auto;padding:16px 0 calc(18px + env(safe-area-inset-bottom,0px
 (function(){
 'use strict';
 
-var GEN_DATE = '2026-09-11 03:05';
+var GEN_DATE = '2026-09-11 03:16';
 var FIELDS = ['品牌','型号','键位','轴体','颜色','无线','购入价','购买时间','购买渠道','闲置价格'];
 
 var DEFAULT_DATA = JSON.parse(document.getElementById('kb-data').textContent);
@@ -1910,14 +1911,34 @@ function bind(){
     lbz = {z:1, tx:0, ty:0};
     fitStage();
   });
-  /* 回到顶部按钮:滚过 400px 出现 */
+  /* 回到顶部按钮:滚过 400px 出现;静止 2s 收纳贴边只露一小截,开始滑动再滑出 */
   var topBtn = $('#topBtn');
+  var tuckTimer = null;
+  var armTuck = function(){
+    clearTimeout(tuckTimer);
+    if(window.scrollY > 400) tuckTimer = setTimeout(function(){
+      if(window.scrollY > 400) topBtn.classList.add('tucked');
+    }, 2000);
+  };
   topBtn.addEventListener('click', function(){ window.scrollTo({top:0, behavior:'smooth'}); });
+  /* 悬停呼出;移开后 2s 再收纳 */
+  topBtn.addEventListener('mouseenter', function(){
+    topBtn.classList.remove('tucked');
+    clearTimeout(tuckTimer);
+  });
+  topBtn.addEventListener('mouseleave', armTuck);
+  function wakeTopBtn(){
+    var on = window.scrollY > 400;
+    topBtn.classList.toggle('show', on);
+    topBtn.classList.remove('tucked');
+    clearTimeout(tuckTimer);
+    if(on) armTuck();
+  }
   /* 手机端:累计滑动超过 20px 才切换顶部栏(下滑收起,上滑出现);页面顶部 240px 内常显 */
   var lastY = window.scrollY;
   window.addEventListener('scroll', function(){
     if(searchOpen) closeSearch();
-    topBtn.classList.toggle('show', window.scrollY > 400);
+    wakeTopBtn();
     var bar = document.querySelector('.toolbar');
     if(!window.matchMedia('(max-width:680px)').matches){
       bar.classList.remove('tb-hidden');
