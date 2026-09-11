@@ -337,6 +337,17 @@ tr.sold-tr:hover{background:#f2f4f9}
   border-radius:6px;padding:1px 6px;line-height:1.4;
 }
 .meta{margin-left:auto;text-align:right;font-size:12px;color:var(--muted);line-height:1.5}
+/* 新品标签:金黄丝带斜挂卡片右上角(卡片 overflow:hidden 负责裁边) */
+.card{position:relative}
+.new-tag{
+  position:absolute;top:16px;right:-37px;z-index:4;
+  width:132px;text-align:center;transform:rotate(45deg);
+  background:linear-gradient(135deg,#ffe27a,#f5b916 55%,#d99a00);
+  color:#5c3d00;font-size:14px;font-weight:800;letter-spacing:2px;
+  padding:3px 0;line-height:1.4;
+  box-shadow:0 2px 8px rgba(120,84,0,.4);
+  pointer-events:none;
+}
 
 /* ---------- 表格 ---------- */
 .table-wrap{
@@ -370,9 +381,9 @@ th.c-img{white-space:nowrap;width:1%}
 .st-tag{display:inline-block;font-size:11px;font-weight:600;color:#1d4ed8;
   background:#e8efff;border:1px solid #c9d8fb;border-radius:999px;padding:2px 9px;
   white-space:nowrap}
-/* 状态分色:进行中(蓝) / 已预订(黄) / 缺货(橙红) / 完成(灰) */
+/* 状态分色:进行中(蓝) / 已预订(黄) / 失踪(黄) / 完成(灰) */
 .st-tag.t-res{color:#8a6d1a;background:#fdf3d7;border-color:#ecd9a0}
-.st-tag.t-out{color:#c2410c;background:#fdeee9;border-color:#f6d0c2}
+.st-tag.t-miss{color:#c2410c;background:#fdeee9;border-color:#f6d0c2}
 .st-tag.t-done{color:#8a919e;background:#eef0f4;border-color:#d9dee7}
 .price-cell{color:var(--price);font-weight:700}
 .price-cell.orig-p{color:#a3aab8;font-weight:400;text-decoration:line-through}
@@ -715,7 +726,7 @@ footer{margin-top:auto;padding:16px 0 calc(18px + env(safe-area-inset-bottom,0px
 <aside id="navDrawer" class="nav-drawer" aria-label="分类菜单">
   <div class="nav-head">LYZ小卖部</div>
   <nav id="navList"></nav>
-  <div class="nav-date">数据生成于 2026-09-11 23:01</div>
+  <div class="nav-date">数据生成于 2026-09-12 02:16</div>
   <div class="nav-foot">
     <a class="nav-link" href="https://www.mousetester.cn/?utm_source=keyboard" target="_blank" rel="noopener">鼠标测试工具
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg>
@@ -847,14 +858,14 @@ footer{margin-top:auto;padding:16px 0 calc(18px + env(safe-area-inset-bottom,0px
 <div id="toast" class="hidden"></div>
 
 <script id="kb-data" type="application/json">
-[{"品牌":"ikbc","型号":"W200","键帽":"迷失森林","原厂键帽":"无","键位":"80%","轴体":"Cherry红轴","颜色":"白","无线":"是","购入价":378,"键帽购入价":112,"购买时间":"2019-07-31","购买渠道":"京东","闲置价格":30,"已出售":true,"编号":"01","原图":["ikbc W200.jpg"]},{"品牌":"CHERRY","型号":"MX1.0 TKL","键位":"80%","轴体":"Cherry青轴","颜色":"黑","无线":"否","购入价":237,"购买时间":"2020-04-17","购买渠道":"京东","闲置价格":10,"已出售":true,"编号":"02","原图":["CHERRY MX1.0 TKL.jpg"]},{"品牌":"罗技","型号":"G913 TKL","键位":"80%","轴体":"Cherry T轴","颜色":"银/白","无线":"是","购入价":1447,"购买时间":"2020-12-05","购买渠道":"京东","闲置价格":399,"备注":"A键偶尔失灵，需要维修一下","已出售":false,"编号":"03","原图":["罗技 G913 TKL.jpg"]},{"品牌":"AKKO","型号":"3098N 海洋之星","键位":"96%","轴体":"TTC月白轴","颜色":"蓝","无线":"是","购入价":549,"购买时间":"2020-06-03","购买渠道":"京东","闲置价格":9999,"已出售":true,"编号":"04","原图":[]},{"品牌":"宁芝","型号":"T系列","键帽":"KEYMOJI 蒙德里安","原厂键帽":"有","键位":"80%","轴体":"静电容轴35g","颜色":"白","无线":"否","购入价":684,"键帽购入价":239,"购买时间":"2022-09-02","购买渠道":"京东","闲置价格":200,"已出售":true,"编号":"05","原图":["宁芝 T系列.jpg"]},{"品牌":"VGN","型号":"S99","键位":"96%","轴体":"凯华极光冰淇淋轴","颜色":"远山蓝","无线":"是","购入价":419,"购买时间":"2023-06-13","购买渠道":"京东","闲置价格":80,"已出售":true,"编号":"06","原图":["VGN S99.jpg"]},{"品牌":"ROG","型号":"夜魔","键位":"75%","轴体":"NX雪武白轴","颜色":"月耀白","无线":"是","购入价":1777,"购买时间":"2023-11-05","购买渠道":"京东","闲置价格":800,"已出售":true,"编号":"07","原图":["ROG 夜魔.jpg"]},{"品牌":"IQUNIX","型号":"MG65","原厂键帽":" ","键位":"65%","轴体":"轻羽轴","颜色":"雾苏白","无线":"是","购入价":691,"购买时间":"2024-08-30","购买渠道":"淘宝","闲置价格":249,"已出售":true,"编号":"08","原图":["IQUNIX MG65.jpg"]},{"品牌":"MelGeek","型号":"MADE68","键帽":"AKKO EVA 霓虹","原厂键帽":"有","键位":"65%","轴体":"凯华青峰轴","颜色":"白/紫","无线":"否","购入价":631,"键帽购入价":229,"购买时间":"2024-09-03","购买渠道":"淘宝","闲置价格":249,"已出售":false,"编号":"09","原图":["MelGeek MADE68.jpg"]},{"品牌":"MelGeek","型号":"奇点80","键位":"75%","轴体":"TTC反斗万磁王白轴","颜色":"白/黑","无线":"否","购入价":1989,"购买时间":"2025-12-12","购买渠道":"京东","闲置价格":1300,"已出售":false,"编号":"10","原图":["MelGeek 奇点80.jpg"]},{"品牌":"MelGeek","型号":"VIVA63","键位":"60%","轴体":"TTC万磁王PRO轴","颜色":"冰魄白","无线":"否","购入价":888,"购买时间":"2026-08-17","购买渠道":"京东","闲置价格":700,"已出售":false,"编号":"11","原图":["MelGeek VIVA63.jpg"]},{"品牌":"IQUNIX","型号":"A80 探索机","键位":"75%","轴体":"Cherry青轴","颜色":"蓝/黄","无线":"是","购入价":696,"购买时间":"2020-10-21","购买渠道":"淘宝","闲置价格":100,"已出售":true,"编号":"12","原图":["IQUNIX A80 探索机.jpg"]},{"品牌":"HEAVY SHELL","型号":"Kira 96","键位":"96%","轴体":"TTC金粉轴","颜色":"白","无线":"否","购入价":1339,"购买时间":"2021-04-27","购买渠道":"淘宝","闲置价格":9999,"已出售":true,"编号":"13","原图":[]},{"品牌":"LEOPOLD","型号":"FC980M","键位":"96%","轴体":"流星灰轴","颜色":"红/蓝白","无线":"否","购入价":901,"购买时间":"2023-06-01","购买渠道":"淘宝","闲置价格":200,"已出售":true,"编号":"14","原图":["LEOPOLD FC980M.jpg"]},{"品牌":"Keydous","型号":"NJ80","键帽":"JDA 草莓益生菌","原厂键帽":"无","键位":"75%","颜色":"白","无线":"是","购入价":492,"键帽购入价":222,"购买时间":"2021-11-01","购买渠道":"淘宝","闲置价格":100,"备注":"无线适配器丢失","已出售":true,"编号":"15","原图":["Keydous NJ80.jpg"]},{"品牌":"IQUNIX","型号":"ZX75 重力波","键位":"75%","轴体":"快银轴","颜色":"白/灰黄","无线":"是","购入价":868,"购买时间":"2021-11-04","购买渠道":"淘宝","闲置价格":200,"已出售":true,"编号":"16","原图":["IQUNIX ZX75 重力波.jpg"]},{"品牌":"HEAVY SHELL","型号":"Barix 87","键位":"80%","轴体":"茶轴","颜色":"灰","无线":"否","购入价":1099,"购买时间":"2020-03-28","购买渠道":"淘宝","闲置价格":9999,"已出售":true,"编号":"17","原图":[]},{"品牌":"MAXKEY","型号":"TADA68 PRO","键位":"65%","轴体":"白光银轴","颜色":"黑/白灰","无线":"是","购入价":535,"购买时间":"2017-11-15","购买渠道":"淘宝","闲置价格":20,"备注":"脚垫掉了，有点放不平，需要稍微DIY一下","已出售":true,"编号":"18","原图":["MAXKEY TADA68 PRO.jpg"]},{"品牌":"LEOPOLD","型号":"FC660M","壳体":"红 阳极铝","键帽":"白 无刻","原厂壳体":"无","原厂键帽":"无","键位":"65%","轴体":"Cherry茶轴","颜色":"黑","无线":"否","购入价":557,"壳体购入价":649,"键帽购入价":198,"购买时间":"2013-12-12","购买渠道":"淘宝","闲置价格":300,"已出售":false,"编号":"19","原图":["LEOPOLD FC660M.jpg"]},{"品牌":"IQUNIX","型号":"Q66 银迹","键位":"65%","轴体":"TTC圣熊猫轴","颜色":"白/灰","无线":"是","购入价":818,"购买时间":"2022-10-24","购买渠道":"淘宝","闲置价格":249,"已出售":true,"编号":"20","原图":["IQUNIX Q66 银迹.jpg"]},{"品牌":"狼派","型号":"HK35","键位":"30%","轴体":"佳达隆磁玉gaming","颜色":"银/白","无线":"否","购入价":497,"购买时间":"2025-09-01","购买渠道":"淘宝","闲置价格":150,"已出售":false,"编号":"21","原图":["狼派 HK35.jpg"]},{"品牌":"Wooting","型号":"60HE","壳体":"AIM60 白 电泳","键帽":"JKDK 白绿（GOW）","原厂壳体":"有","原厂键帽":"有","键位":"60%","颜色":"黑","无线":"否","购入价":1300,"壳体购入价":498,"键帽购入价":138,"购买时间":"2023-10-01","购买渠道":"官网","闲置价格":888,"备注":"送XVX 等高线（¥129）","已出售":true,"编号":"22","原图":["Wooting 60HE.jpg"]}]
+[{"品牌":"AKKO","型号":"3098N 海洋之星","键位":"96%","轴体":"TTC月白轴","颜色":"蓝","无线":"是","购入价":549,"购买时间":"2020-06-03","购买渠道":"京东","闲置价格":9999,"已出售":true,"编号":"01","原图":[]},{"品牌":"CHERRY","型号":"MX1.0 TKL","键位":"80%","轴体":"Cherry青轴","颜色":"黑","无线":"否","购入价":237,"购买时间":"2020-04-17","购买渠道":"京东","闲置价格":10,"已出售":true,"编号":"02","原图":["CHERRY MX1.0 TKL.jpg"]},{"品牌":"HEAVY SHELL","型号":"Barix 87","键位":"80%","轴体":"茶轴","颜色":"灰","无线":"否","购入价":1099,"购买时间":"2020-03-28","购买渠道":"淘宝","闲置价格":9999,"已出售":true,"编号":"03","原图":[]},{"品牌":"HEAVY SHELL","型号":"Kira 96","键位":"96%","轴体":"TTC金粉轴","颜色":"白","无线":"否","购入价":1339,"购买时间":"2021-04-27","购买渠道":"淘宝","闲置价格":9999,"已出售":true,"编号":"04","原图":[]},{"品牌":"ikbc","型号":"W200","键帽":"迷失森林","原厂键帽":"无","键位":"80%","轴体":"Cherry红轴","颜色":"白","无线":"是","购入价":378,"键帽购入价":112,"购买时间":"2019-07-31","购买渠道":"京东","闲置价格":30,"已出售":true,"编号":"05","原图":["ikbc W200.jpg"]},{"品牌":"IQUNIX","型号":"A80 探索机","键位":"75%","轴体":"Cherry青轴","颜色":"蓝/黄","无线":"是","购入价":696,"购买时间":"2020-10-21","购买渠道":"淘宝","闲置价格":100,"已出售":true,"编号":"06","原图":["IQUNIX A80 探索机.jpg"]},{"品牌":"IQUNIX","型号":"MG65","原厂键帽":" ","键位":"65%","轴体":"轻羽轴","颜色":"雾苏白","无线":"是","购入价":691,"购买时间":"2024-08-30","购买渠道":"淘宝","闲置价格":249,"已出售":true,"编号":"07","原图":["IQUNIX MG65.jpg"]},{"品牌":"IQUNIX","型号":"Q66 银迹","键位":"65%","轴体":"TTC圣熊猫轴","颜色":"白/灰","无线":"是","购入价":818,"购买时间":"2022-10-24","购买渠道":"淘宝","闲置价格":249,"已出售":true,"编号":"08","原图":["IQUNIX Q66 银迹.jpg"]},{"品牌":"IQUNIX","型号":"ZX75 重力波","键位":"75%","轴体":"快银轴","颜色":"白/灰黄","无线":"是","购入价":868,"购买时间":"2021-11-04","购买渠道":"淘宝","闲置价格":200,"已出售":true,"编号":"09","原图":["IQUNIX ZX75 重力波.jpg"]},{"品牌":"Keydous","型号":"NJ80","键帽":"JDA 草莓益生菌","原厂键帽":"无","键位":"75%","颜色":"白","无线":"是","购入价":492,"键帽购入价":222,"购买时间":"2021-11-01","购买渠道":"淘宝","闲置价格":100,"备注":"无线适配器丢失","已出售":true,"编号":"10","原图":["Keydous NJ80.jpg"]},{"品牌":"狼派","型号":"HK35","键位":"30%","轴体":"佳达隆磁玉gaming","颜色":"银/白","无线":"否","购入价":497,"购买时间":"2025-09-01","购买渠道":"淘宝","闲置价格":150,"已出售":false,"编号":"11","原图":["狼派 HK35.jpg"]},{"品牌":"LEOPOLD","型号":"FC660M","壳体":"红 阳极铝","键帽":"白 无刻","原厂壳体":"无","原厂键帽":"无","键位":"65%","轴体":"Cherry茶轴","颜色":"黑","无线":"否","购入价":557,"壳体购入价":649,"键帽购入价":198,"购买时间":"2013-12-12","购买渠道":"淘宝","闲置价格":300,"已出售":false,"编号":"12","原图":["LEOPOLD FC660M.jpg"]},{"品牌":"LEOPOLD","型号":"FC980M","键位":"96%","轴体":"流星灰轴","颜色":"红/蓝白","无线":"否","购入价":901,"购买时间":"2023-06-01","购买渠道":"淘宝","闲置价格":200,"已出售":true,"编号":"13","原图":["LEOPOLD FC980M.jpg"]},{"品牌":"罗技","型号":"G913 TKL","键位":"80%","轴体":"Cherry T轴","颜色":"银/白","无线":"是","购入价":1447,"购买时间":"2020-12-05","购买渠道":"京东","闲置价格":399,"备注":"A键偶尔失灵，需要维修一下","已出售":false,"编号":"14","原图":["罗技 G913 TKL.jpg"]},{"品牌":"MAXKEY","型号":"TADA68 PRO","键位":"65%","轴体":"白光银轴","颜色":"黑/白灰","无线":"是","购入价":535,"购买时间":"2017-11-15","购买渠道":"淘宝","闲置价格":20,"备注":"脚垫掉了，有点放不平，需要稍微DIY一下","已出售":true,"编号":"15","原图":["MAXKEY TADA68 PRO.jpg"]},{"品牌":"MelGeek","型号":"MADE68","键帽":"AKKO EVA 霓虹","原厂键帽":"有","键位":"65%","轴体":"凯华青峰轴","颜色":"白/紫","无线":"否","购入价":631,"键帽购入价":229,"购买时间":"2024-09-03","购买渠道":"淘宝","闲置价格":249,"已出售":false,"编号":"16","原图":["MelGeek MADE68.jpg"]},{"品牌":"MelGeek","型号":"奇点80","键位":"75%","轴体":"TTC反斗万磁王白轴","颜色":"白/黑","无线":"否","购入价":1989,"购买时间":"2025-12-12","购买渠道":"京东","闲置价格":1300,"已出售":false,"编号":"17","原图":["MelGeek 奇点80.jpg"]},{"品牌":"MelGeek","型号":"VIVA63","键位":"60%","轴体":"TTC万磁王PRO轴","颜色":"冰魄白","无线":"否","购入价":888,"购买时间":"2026-08-17","购买渠道":"京东","闲置价格":700,"已出售":false,"编号":"18","原图":["MelGeek VIVA63.jpg"]},{"品牌":"宁芝","型号":"T系列","键帽":"KEYMOJI 蒙德里安","原厂键帽":"有","键位":"80%","轴体":"静电容轴35g","颜色":"白","无线":"否","购入价":684,"键帽购入价":239,"购买时间":"2022-09-02","购买渠道":"京东","闲置价格":200,"已出售":true,"编号":"19","原图":["宁芝 T系列.jpg"]},{"品牌":"ROG","型号":"夜魔","键位":"75%","轴体":"NX雪武白轴","颜色":"月耀白","无线":"是","购入价":1777,"购买时间":"2023-11-05","购买渠道":"京东","闲置价格":800,"已出售":true,"编号":"20","原图":["ROG 夜魔.jpg"]},{"品牌":"VGN","型号":"S99","键位":"96%","轴体":"凯华极光冰淇淋轴","颜色":"远山蓝","无线":"是","购入价":419,"购买时间":"2023-06-13","购买渠道":"京东","闲置价格":80,"已出售":true,"编号":"21","原图":["VGN S99.jpg"]},{"品牌":"Wooting","型号":"60HE","壳体":"AIM60 白 电泳","键帽":"JKDK 白绿（GOW）","原厂壳体":"有","原厂键帽":"有","键位":"60%","颜色":"黑","无线":"否","购入价":1300,"壳体购入价":498,"键帽购入价":138,"购买时间":"2023-10-01","购买渠道":"官网","闲置价格":888,"备注":"送XVX 等高线（¥129）","已出售":true,"编号":"22","原图":["Wooting 60HE.jpg"]}]
 </script>
 
 <script>
 (function(){
 'use strict';
 
-var GEN_DATE = '2026-09-11 23:01';
+var GEN_DATE = '2026-09-12 02:16';
 var FIELDS = ['品牌','型号','键位','轴体','颜色','无线','购入价','购买时间','购买渠道','闲置价格'];
 
 var DEFAULT_DATA = JSON.parse(document.getElementById('kb-data').textContent);
@@ -987,11 +998,13 @@ function thumbsOf(item){
   return origsOf(item).map(function(n){ return { stem: stemOf(n) }; });
 }
 /* 多源缩略图 → <picture>:webp 优先,按屏宽选 360/720,jpg 兜底 */
+/* srcset 按空格/逗号切分候选,URL 里的空格必须编码成 %20 */
+function ssUrl(u){ return esc(u).replace(/ /g, '%20'); }
 function thumbPicture(t, cls, sizes){
   var b = FILTER_CFG.thumbBase + '/' + t.stem;
   var p = '<picture>'
-    + '<source type="image/webp" srcset="'+esc(b+'_360.webp')+' 360w, '+esc(b+'_720.webp')+' 720w" sizes="'+sizes+'">'
-    + '<source type="image/jpeg" srcset="'+esc(b+'_360.jpg')+' 360w, '+esc(b+'_720.jpg')+' 720w" sizes="'+sizes+'">'
+    + '<source type="image/webp" srcset="'+ssUrl(b+'_360.webp')+' 360w, '+ssUrl(b+'_720.webp')+' 720w" sizes="'+sizes+'">'
+    + '<source type="image/jpeg" srcset="'+ssUrl(b+'_360.jpg')+' 360w, '+ssUrl(b+'_720.jpg')+' 720w" sizes="'+sizes+'">'
     + '<img class="'+cls+'" src="'+esc(b+'_360.jpg')+'" alt="" loading="lazy" decoding="async">'
     + '</picture>';
   return p;
@@ -1038,10 +1051,10 @@ function sortVal(item, key){
   }
 }
 function hasImage(item){ return origsOf(item).length > 0; }
-/* 状态排序权重:进行中(0) → 已预订(1) → 缺货(2);完成由已出售置底规则处理 */
+/* 状态排序权重:进行中(0) → 已预订(1) → 失踪(2);完成由已出售置底规则处理 */
 function statusRank(item){
   var s = str(item['状态']).trim();
-  if(s === '缺货') return 2;
+  if(s === '失踪') return 2;
   if(s === '已预订' || s === '已预定') return 1;
   return 0;
 }
@@ -1052,7 +1065,7 @@ function sortComparator(){
     var sa = a['已出售'] ? 1 : 0, sb = b['已出售'] ? 1 : 0;
     if(sa !== sb) return sa - sb;
     if(FILTER_CFG.statusSort){
-      /* 默认排序才按状态分组:进行中 → 已预订 → 缺货(→ 完成已置底);选了具体排序键则按所选键全局排 */
+      /* 默认排序才按状态分组:进行中 → 已预订 → 失踪(→ 完成已置底);选了具体排序键则按所选键全局排 */
       if(sortKey === '编号'){
         var ra = statusRank(a), rb = statusRank(b);
         if(ra !== rb) return ra - rb;
@@ -1313,7 +1326,7 @@ function comboHtml(item){
 /* 状态标签:分色 + 完成也显示 */
 function stClass(s, done){
   if(done) return 't-done';
-  if(s === '缺货') return 't-out';
+  if(s === '失踪') return 't-miss';
   if(s === '已预订' || s === '已预定') return 't-res';
   return '';   /* 进行中等其余状态:蓝 */
 }
@@ -1332,6 +1345,10 @@ function metaHtml(item){
 function memoHtml(item){
   var v = str(item['备注']).trim();
   return v ? '<div class="memo">'+esc(v)+'</div>' : '';
+}
+/* 新品标签:新品列=1 时显示金黄斜角丝带 */
+function newTagHtml(item){
+  return str(item['新品']).trim() === '1' ? '<span class="new-tag">NEW</span>' : '';
 }
 function renderCards(){
   $('#cardsView').innerHTML = DISPLAY.map(function(item){
@@ -1363,6 +1380,7 @@ function renderCards(){
         + '</div></div>';
     }
     return '<article class="card'+(item['已出售']?' sold':'')+'" data-id="'+esc(id)+'">'
+      + newTagHtml(item)
       + '<div class="card-img" id="ci-'+esc(id)+'"></div>'
       + body + '</article>';
   }).join('');
@@ -1698,7 +1716,8 @@ function showLb(){
   img.onerror = function(){ if(token === lbLoadToken){ ringDash(1); doneLbImg(); } };
   if(ld){ ld.classList.remove('hidden'); ringDash(0); }
   loadLbSrc(previewUrl(LB.item, LB.idx), token);
-  if(img.complete && img.naturalWidth){ ringDash(1); doneLbImg(); }
+  /* 注意:新图是异步 fetch 后才赋 src,此处不能检查 img.complete——
+     那时 img 还是旧图,会误判"已加载"而把旧图保持可见、圆环隐藏 */
   $('#lbCap').textContent = LB.title+'　·　'+(LB.idx+1)+' / '+LB.list.length;
   var fac = [];
   ['原厂壳体','原厂键帽'].forEach(function(k){
@@ -2182,6 +2201,35 @@ function init(){
 }
 
 init();
+
+/* 网络空闲时后台预载全部缩略图(360/720 webp 双档,兼容普通屏与高清屏),滚动到时即秒开;省流模式开启则跳过 */
+function preloadThumbs(){
+  var conn = navigator.connection || {};
+  if(conn.saveData) return;
+  var queue = [];
+  DATA.forEach(function(item){
+    (item['原图'] || []).forEach(function(n){
+      var d = n.lastIndexOf('.');
+      var stem = d < 0 ? n : n.slice(0, d);
+      queue.push(FILTER_CFG.thumbBase + '/' + stem + '_360.webp');
+      queue.push(FILTER_CFG.thumbBase + '/' + stem + '_720.webp');
+    });
+  });
+  var i = 0, live = 0;
+  var MAX = 1;   /* 串行预载:弱网下不抢占视口内图片的带宽 */
+  function next(){
+    while(live < MAX && i < queue.length){
+      (function(url){
+        live++;
+        var im = new Image();
+        im.onload = im.onerror = function(){ live--; next(); };
+        im.src = url;
+      })(queue[i++]);
+    }
+  }
+  next();
+}
+window.addEventListener('load', function(){ setTimeout(preloadThumbs, 2000); });
 })();
 </script>
 </body>
