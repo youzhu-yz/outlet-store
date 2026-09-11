@@ -198,11 +198,9 @@ main{max-width:1200px;margin:0 auto;padding:0 16px}
   .card-img:hover img.main{transform:scale(1.045)}
   .card-img:hover img.noimg-main{transform:none}
 }
-/* 已出售:灰色蒙版 + 闲鱼风「卖掉了」印章图 */
-.card.sold{position:relative}
-/* 已出售:仅一层蒙版 + 印章,图片文字保持原样 */
-.card.sold{position:relative}
-.card.sold::before{
+/* 已出售/失踪:灰色蒙版;已出售另有印章,失踪只置灰 */
+.card.sold,.card.missing{position:relative}
+.card.sold::before,.card.missing::before{
   content:"";position:absolute;inset:0;z-index:3;pointer-events:none;
   background:linear-gradient(160deg,rgba(255,255,255,.52) 0%,rgba(214,220,230,.34) 52%,rgba(198,205,217,.40) 100%);
 }
@@ -733,7 +731,7 @@ footer{margin-top:auto;padding:16px 0 calc(18px + env(safe-area-inset-bottom,0px
 <aside id="navDrawer" class="nav-drawer" aria-label="分类菜单">
   <div class="nav-head">LYZ小卖部</div>
   <nav id="navList"></nav>
-  <div class="nav-date">数据生成于 2026-09-12 03:25</div>
+  <div class="nav-date">数据生成于 2026-09-12 05:41</div>
   <div class="nav-foot">
     <a class="nav-link" href="https://www.mousetester.cn/?utm_source=keyboard" target="_blank" rel="noopener">鼠标测试工具
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg>
@@ -872,7 +870,7 @@ footer{margin-top:auto;padding:16px 0 calc(18px + env(safe-area-inset-bottom,0px
 (function(){
 'use strict';
 
-var GEN_DATE = '2026-09-12 03:25';
+var GEN_DATE = '2026-09-12 05:41';
 var FIELDS = ['品牌','型号','键位','轴体','颜色','无线','购入价','购买时间','购买渠道','闲置价格'];
 
 var DEFAULT_DATA = JSON.parse(document.getElementById('kb-data').textContent);
@@ -1070,11 +1068,9 @@ function sortComparator(){
     var sa = a['已出售'] ? 1 : 0, sb = b['已出售'] ? 1 : 0;
     if(sa !== sb) return sa - sb;
     if(FILTER_CFG.statusSort){
-      /* 默认排序才按状态分组:进行中 → 已预订 → 失踪(→ 完成已置底);选了具体排序键则按所选键全局排 */
-      if(sortKey === '编号'){
-        var ra = statusRank(a), rb = statusRank(b);
-        if(ra !== rb) return ra - rb;
-      }
+      /* 所有排序方式都先按状态分组:待售中 → 已预订 → 失踪(→ 已售出已置底),组内再按所选键排 */
+      var ra = statusRank(a), rb = statusRank(b);
+      if(ra !== rb) return ra - rb;
     }else{
       /* 没有图片的键盘排最后(编号不变,只是位置靠后) */
       var ha = hasImage(a), hb = hasImage(b);
@@ -1212,17 +1208,23 @@ function buildSinglePanel(panelId, options, currentV){
 function buildSalePanel(){
   var saleOpts;
   if(FILTER_CFG.saleFrom === 'status'){
+    /* 顺序:待售中 → 已预订 → 失踪 → 已售出(与卡片置底分组一致);表里出现其他状态时追加在最后 */
     var seen = {};
     DATA.forEach(function(it){
       var v = str(it['状态']).trim();
       if(v) seen[v] = 1;
     });
-    saleOpts = [{v:'',label:'全部'},{v:'__none__',label:'未出售'}];
+    var order = ['已预订', '失踪', '完成'];
+    var label = function(v){ return v === '完成' ? '已售出' : v; };
+    saleOpts = [{v:'',label:'全部'},{v:'__none__',label:'待售中'}];
+    order.forEach(function(v){
+      if(seen[v]){ delete seen[v]; saleOpts.push({v:v, label:label(v)}); }
+    });
     Object.keys(seen).sort().forEach(function(v){
-      saleOpts.push({v:v, label: v === '完成' ? '已出售' : v});
+      saleOpts.push({v:v, label:label(v)});
     });
   }else{
-    saleOpts = [{v:'',label:'全部'},{v:'0',label:'未出售'},{v:'1',label:'已出售'}];
+    saleOpts = [{v:'',label:'全部'},{v:'0',label:'待售中'},{v:'1',label:'已售出'}];
   }
   buildSinglePanel('saleMSPanel', saleOpts, fSale);
 }
@@ -1339,7 +1341,7 @@ function stTagHtml(item){
   var s = str(item['状态']).trim();
   if(!s) return '';
   var done = !!item['已出售'];
-  return '<span class="st-tag '+stClass(s, done)+'">'+(done ? '已出售' : esc(s))+'</span>';
+  return '<span class="st-tag '+stClass(s, done)+'">'+(done ? '已售出' : esc(s))+'</span>';
 }
 function metaHtml(item){
   if(FILTER_CFG.cardMeta === 'status'){
@@ -1384,7 +1386,7 @@ function renderCards(){
         + '<div class="meta">'+metaHtml(item)+'</div>'
         + '</div></div>';
     }
-    return '<article class="card'+(item['已出售']?' sold':'')+'" data-id="'+esc(id)+'">'
+    return '<article class="card'+(item['已出售']?' sold':(str(item['状态']).trim() === '失踪' ? ' missing' : ''))+'" data-id="'+esc(id)+'">'
       + newTagHtml(item)
       + '<div class="card-img" id="ci-'+esc(id)+'"></div>'
       + body + '</article>';
