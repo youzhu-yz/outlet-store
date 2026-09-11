@@ -339,6 +339,12 @@ tr.sold-tr:hover{background:#f2f4f9}
 .meta{margin-left:auto;text-align:right;font-size:12px;color:var(--muted);line-height:1.5}
 /* 新品标签:金黄丝带斜挂卡片右上角(卡片 overflow:hidden 负责裁边) */
 .card{position:relative}
+/* 行内小标签:表格编号前用,固定占位保证编号对齐 */
+.new-tag-inline{display:inline-block;width:32px;text-align:center;
+  font-size:9px;font-weight:800;color:#8a5800;
+  background:linear-gradient(135deg,#ffe27a,#f5b916);padding:0 0;
+  border-radius:3px;letter-spacing:1px;line-height:1.5;margin-right:5px;vertical-align:1px;
+  box-sizing:border-box}
 .new-tag{
   position:absolute;top:16px;right:-37px;z-index:4;
   width:132px;text-align:center;transform:rotate(45deg);
@@ -363,7 +369,8 @@ td{padding:9px 12px;font-size:13px;border-bottom:1px solid #f0f2f6;white-space:n
 tbody tr:nth-child(even){background:#fafbfd}
 tbody tr:hover{background:#f2f5ff}
 tbody tr:last-child td{border-bottom:none}
-.c-id{color:var(--muted);font-family:Consolas,monospace}
+.c-id{color:var(--muted);font-family:Consolas,monospace;white-space:nowrap}
+.new-slot{display:inline-block;width:36px}
 .c-brand{font-weight:600;white-space:nowrap}
 .c-brand .bt{overflow:hidden;white-space:nowrap}
 .c-model{font-weight:600}
@@ -726,7 +733,7 @@ footer{margin-top:auto;padding:16px 0 calc(18px + env(safe-area-inset-bottom,0px
 <aside id="navDrawer" class="nav-drawer" aria-label="分类菜单">
   <div class="nav-head">LYZ小卖部</div>
   <nav id="navList"></nav>
-  <div class="nav-date">数据生成于 2026-09-12 02:16</div>
+  <div class="nav-date">数据生成于 2026-09-12 03:25</div>
   <div class="nav-foot">
     <a class="nav-link" href="https://www.mousetester.cn/?utm_source=keyboard" target="_blank" rel="noopener">鼠标测试工具
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg>
@@ -865,7 +872,7 @@ footer{margin-top:auto;padding:16px 0 calc(18px + env(safe-area-inset-bottom,0px
 (function(){
 'use strict';
 
-var GEN_DATE = '2026-09-12 02:16';
+var GEN_DATE = '2026-09-12 03:25';
 var FIELDS = ['品牌','型号','键位','轴体','颜色','无线','购入价','购买时间','购买渠道','闲置价格'];
 
 var DEFAULT_DATA = JSON.parse(document.getElementById('kb-data').textContent);
@@ -964,15 +971,13 @@ function cmpBrand(x, y){
   if(ka !== kb) return ka < kb ? -1 : 1;
   return str(x).trim().localeCompare(str(y).trim(), 'zh-Hans-CN');
 }
-/* 编号按品牌首字母排序后重新分配,同品牌内按型号排 */
+/* 初始展示顺序:品牌首字母排序,同品牌内按型号;编号以表里为准,不再重排 */
 function orderByBrand(items){
-  var arr = items.slice().sort(function(a, b){
+  return items.slice().sort(function(a, b){
     var c = cmpBrand(a['品牌'], b['品牌']);
     if(c !== 0) return c;
     return cmpBrand(a['型号'], b['型号']);
   });
-  arr.forEach(function(it, i){ it['编号'] = padId(i+1); });
-  return arr;
 }
 function money(n){
   n = Number(n);
@@ -1488,7 +1493,7 @@ function renderTable(){
     });
     var buyTitle = buyParts.join(' + ');
     return '<tr data-id="'+esc(id)+'"'+(item['已出售']?' class="sold-tr"':'')+'>'
-      + '<td class="c-id">#'+esc(id)+'</td>'
+      + '<td class="c-id"><span class="new-slot">'+(str(item['新品']).trim() === '1' ? '<span class="new-tag-inline">NEW</span>' : '')+'</span>#'+esc(id)+'</td>'
       + '<td class="c-brand"><span class="bt">'+esc(item['品牌'])+'</span></td>'
       + '<td class="c-model"><span class="mw"><span class="mt">'+esc(item['型号'])+'</span>'+comboHtml(item)
       + '<button type="button" class="copy-btn" data-id="'+esc(id)+'" title="复制编号、品牌、型号">'+COPY_SVG+'</button></span></td>'
