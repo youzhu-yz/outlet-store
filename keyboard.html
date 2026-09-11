@@ -715,7 +715,7 @@ footer{margin-top:auto;padding:16px 0 calc(18px + env(safe-area-inset-bottom,0px
 <aside id="navDrawer" class="nav-drawer" aria-label="分类菜单">
   <div class="nav-head">LYZ小卖部</div>
   <nav id="navList"></nav>
-  <div class="nav-date">数据生成于 2026-09-11 22:26</div>
+  <div class="nav-date">数据生成于 2026-09-11 23:01</div>
   <div class="nav-foot">
     <a class="nav-link" href="https://www.mousetester.cn/?utm_source=keyboard" target="_blank" rel="noopener">鼠标测试工具
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg>
@@ -854,7 +854,7 @@ footer{margin-top:auto;padding:16px 0 calc(18px + env(safe-area-inset-bottom,0px
 (function(){
 'use strict';
 
-var GEN_DATE = '2026-09-11 22:26';
+var GEN_DATE = '2026-09-11 23:01';
 var FIELDS = ['品牌','型号','键位','轴体','颜色','无线','购入价','购买时间','购买渠道','闲置价格'];
 
 var DEFAULT_DATA = JSON.parse(document.getElementById('kb-data').textContent);
@@ -1614,19 +1614,20 @@ function openLightbox(item, i, listOverride){
   document.body.style.overflow = 'hidden';
   showLb();
 }
-/* 原图后台预载:完成后静默换入,不闪黑屏;切图/关闭后作废 */
+/* 原图后台预载:圆环继续显示原图进度,完成后静默换入,不闪黑屏;切图/关闭后作废 */
 function lbLoadFull(){
   if(!LB || LB.fullDone || !LB.item) return;
   var wantIdx = LB.idx;
+  var token = lbLoadToken;
   LB.fullDone = true;   /* 一次会话只拉一次,切图时重置 */
-  var src = LB.list[wantIdx];
-  var probe = new Image();
-  probe.onload = function(){
-    if(!LB || LB.idx !== wantIdx) return;
-    $('#lbImg').src = src;
+  var ld = $('#lbLoading');
+  fetchImg(LB.list[wantIdx], token, function(p){ ringDash(p); if(ld && token === lbLoadToken) ld.classList.remove('hidden'); }).then(function(url){
+    if(!url || token !== lbLoadToken || LB.idx !== wantIdx) return;
+    var img = $('#lbImg');
+    img.src = url;
     fitStage();
-  };
-  probe.src = src;
+    if(ld) ld.classList.add('hidden');
+  });
 }
 /* 大图加载进度:圆环。带跨域 cookie 的 fetch 流式读取真实字节数;不支持时退化为无限旋转环 */
 var lbLoadToken = 0;
@@ -1639,45 +1640,52 @@ function ringDash(pct){
   ring.setAttribute('stroke-dashoffset', String(C * (1 - v)));
   if(txt) txt.textContent = Math.round(v * 100) + '%';
 }
+/* 流式取图:返回 Promise(blob URL / 原地址),onProg 上报 0~1 进度;换图或关闭后自动作废 */
+function fetchImg(src, token, onProg){
+  return new Promise(function(resolve){
+    if(('fetch' in window) && ('ReadableStream' in window) && location.protocol !== 'file:'){
+      fetch(src, { credentials:'include', cache:'force-cache' }).then(function(res){
+        if(token !== lbLoadToken){ resolve(null); return; }
+        if(!res.ok || !res.body){ resolve(src); return; }
+        var total = Number(res.headers.get('content-length')) || 0;
+        var mime = res.headers.get('content-type') || 'image/jpeg';
+        var got = 0, blobs = [], settled = false;
+        var reader = res.body.getReader();
+        function pump(chunk){
+          if(token !== lbLoadToken){ if(!settled){ settled = true; resolve(null); } return null; }
+          got += chunk.value.byteLength;
+          blobs.push(chunk.value);
+          if(onProg) onProg(total ? got / total : Math.min(0.9, got / (300 * 1024)));  /* 无长度时按300KB估进度 */
+          return reader.read().then(pump);
+        }
+        reader.read().then(pump).catch(function(){ if(!settled){ settled = true; resolve(src); } }).then(function(){
+          if(settled) return;
+          settled = true;
+          if(token !== lbLoadToken || !blobs.length){ resolve(token === lbLoadToken ? src : null); return; }
+          if(onProg) onProg(1);
+          resolve(URL.createObjectURL(new Blob(blobs, { type:mime })));
+        });
+      }).catch(function(){ resolve(src); });
+    }else{
+      /* file:// 等不支持流式的场景:直接用原地址 */
+      resolve(src);
+    }
+  });
+}
 function loadLbSrc(src, token){
   var img = $('#lbImg');
-  if(('fetch' in window) && ('ReadableStream' in window) && location.protocol !== 'file:'){
-    fetch(src, { credentials:'include', cache:'force-cache' }).then(function(res){
-      if(token !== lbLoadToken) return;
-      if(!res.ok || !res.body){ img.src = src; return; }
-      var total = Number(res.headers.get('content-length')) || 0;
-      var mime = res.headers.get('content-type') || 'image/jpeg';
-      var got = 0, blobs = [];
-      var reader = res.body.getReader();
-      function pump(chunk){
-        if(token !== lbLoadToken) return;
-        got += chunk.value.byteLength;
-        blobs.push(chunk.value);
-        ringDash(total ? got / total : Math.min(0.9, got / (300 * 1024)));  /* 无长度时按300KB估进度 */
-        return reader.read().then(pump);
-      }
-      reader.read().then(pump).catch(function(){ if(token === lbLoadToken) img.src = src; }).then(function(){
-        if(token !== lbLoadToken || !blobs.length) return;
-        ringDash(1);
-        img.src = URL.createObjectURL(new Blob(blobs, { type:mime }));
-      });
-    }).catch(function(){ if(token === lbLoadToken) img.src = src; });
-  }else{
-    /* file:// 等场景:图片自身加载完即完成 */
-    img.onload = function(){
-      if(token !== lbLoadToken) return;
-      ringDash(1);
-      doneLbImg();
-    };
-    img.src = src;
-  }
+  fetchImg(src, token, function(p){ ringDash(p); }).then(function(url){
+    if(token !== lbLoadToken || !url) return;
+    img.src = url;
+    if(img.complete && img.naturalWidth){ ringDash(1); doneLbImg(); }
+  });
 }
 function doneLbImg(){
   var img = $('#lbImg'), ld = $('#lbLoading');
   fitStage();
   img.style.visibility = '';
   if(ld) ld.classList.add('hidden');
-  lbLoadFull();   /* 预览就位后立即后台拉原图,完成后自动替换 */
+  lbLoadFull();   /* 预览就位后立即后台拉原图,圆环继续显示原图进度 */
 }
 function showLb(){
   var img = $('#lbImg');
