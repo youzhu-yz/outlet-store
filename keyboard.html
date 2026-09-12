@@ -355,7 +355,9 @@ tr.sold-tr:hover{background:#f2f4f9}
 /* 订购按钮:待售中商品图片右下角 */
 .order-btn{position:absolute;right:8px;bottom:8px;z-index:4;border:none;cursor:pointer;
   background:var(--accent);color:#fff;font-size:12px;font-weight:700;
-  padding:4px 13px;border-radius:999px;box-shadow:0 2px 6px rgba(16,24,40,.28)}
+  padding:4px 13px;border-radius:999px;box-shadow:0 2px 6px rgba(16,24,40,.28);
+  visibility:hidden}   /* 初始隐藏:等 overlay 数据就位后再显示,避免闪现 */
+body.locks-ready .order-btn{visibility:visible}
 .order-btn:hover{filter:brightness(1.1)}
 .order-btn.locked{display:none}
 /* 订购确认中:图片右下角黄标(原订购按钮位置),与订购按钮同尺寸 */
@@ -763,7 +765,7 @@ footer{margin-top:auto;padding:16px 0 calc(18px + env(safe-area-inset-bottom,0px
 <aside id="navDrawer" class="nav-drawer" aria-label="分类菜单">
   <div class="nav-head">LYZ小卖部</div>
   <nav id="navList"></nav>
-  <div class="nav-date">数据生成于 2026-09-12 23:59</div>
+  <div class="nav-date">数据生成于 2026-09-13 00:29</div>
   <div class="nav-foot">
     <a class="nav-link" href="https://www.mousetester.cn/?utm_source=keyboard" target="_blank" rel="noopener">鼠标测试工具
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg>
@@ -868,7 +870,7 @@ footer{margin-top:auto;padding:16px 0 calc(18px + env(safe-area-inset-bottom,0px
     <div class="om-model" id="omModel"></div>
     <div class="om-price" id="omPrice"></div>
     <div class="om-id" id="omId"></div>
-    <div class="om-tip">点「确认订购」将复制商品信息并打开订购问卷,请把信息粘贴到问卷第 1 题,再填好你的花名即可提交。</div>
+    <div class="om-tip">确认后粘贴到问卷第 1 题并填花名即可。</div>
     <div class="om-btns">
       <button type="button" class="om-cancel" id="omCancel">取消</button>
       <button type="button" class="om-ok" id="omOk">确认订购</button>
@@ -918,7 +920,7 @@ footer{margin-top:auto;padding:16px 0 calc(18px + env(safe-area-inset-bottom,0px
 (function(){
 'use strict';
 
-var GEN_DATE = '2026-09-12 23:59';
+var GEN_DATE = '2026-09-13 00:29';
 var FIELDS = ['品牌','型号','键位','轴体','颜色','无线','购入价','购买时间','购买渠道','闲置价格'];
 
 var DEFAULT_DATA = JSON.parse(document.getElementById('kb-data').textContent);
@@ -1072,12 +1074,16 @@ function previewUrl(item, i){
 var ORDER_CFG = { survey: 'https://wj.qq.com/s2/27863577/vp82/' };
 var LOCKS = {};   /* overlay.json:编号(去前导零的整数) → 状态 */
 function loadLocks(){
-  fetch('overlay.json?t=' + Date.now()).then(function(r){
+  var done = function(){
+    applyLocks();
+    document.body.classList.add('locks-ready');   /* 就绪后才显示订购按钮 */
+  };
+  fetch('overlay.json?t=' + Date.now(), { cache: 'no-store' }).then(function(r){
     return r.ok ? r.json() : {};
   }).then(function(o){
     LOCKS = o || {};
-    applyLocks();
-  }).catch(function(){ /* 拉不到就降级:不显示锁,网页照常 */ });
+    done();
+  }).catch(function(){ done(); });   /* 拉不到就降级:不显示锁,网页照常 */
 }
 function lockIdOf(item){
   var n = parseInt(str(item['编号']), 10);
@@ -1131,8 +1137,8 @@ var omItem = null;
 function recheckLock(item, cb){
   var pid = lockIdOf(item);
   Promise.all([
-    fetch('overlay.json?t=' + Date.now()).then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; }),
-    fetch(location.pathname + '?ts=' + Date.now()).then(function(r){ return r.text(); }).catch(function(){ return ''; })
+    fetch('overlay.json?t=' + Date.now(), { cache: 'no-store' }).then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; }),
+    fetch(location.pathname + '?ts=' + Date.now(), { cache: 'no-store' }).then(function(r){ return r.text(); }).catch(function(){ return ''; })
   ]).then(function(res){
     var o = res[0] || {};
     LOCKS = o;
