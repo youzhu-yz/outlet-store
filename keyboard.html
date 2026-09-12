@@ -352,6 +352,37 @@ tr.sold-tr:hover{background:#f2f4f9}
   box-shadow:0 2px 8px rgba(120,84,0,.4);
   pointer-events:none;
 }
+/* 订购按钮:待售中商品图片右下角 */
+.order-btn{position:absolute;right:8px;bottom:8px;z-index:4;border:none;cursor:pointer;
+  background:var(--accent);color:#fff;font-size:12px;font-weight:700;
+  padding:4px 13px;border-radius:999px;box-shadow:0 2px 6px rgba(16,24,40,.28)}
+.order-btn:hover{filter:brightness(1.1)}
+.order-btn.locked{background:#9aa6b8;pointer-events:none}
+/* 订购确认中:图片左下角蓝标 */
+.lock-tag{position:absolute;left:8px;bottom:8px;z-index:4;display:inline-block;
+  font-size:11px;font-weight:700;color:#fff;background:var(--accent);
+  padding:2px 9px;border-radius:999px;letter-spacing:1px;pointer-events:none}
+/* 订购确认弹窗:居中,展示商品图与信息 */
+.om{position:fixed;inset:0;z-index:90;background:rgba(8,10,16,.55);
+  display:flex;align-items:center;justify-content:center;padding:16px}
+.om-box{background:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(16,24,40,.35);
+  max-width:340px;width:100%;padding:16px;text-align:center}
+.om-img{border-radius:10px;overflow:hidden;background:#f3f5f9;margin-bottom:12px}
+.om-img picture,.om-img img{width:100%;display:block}
+.om-brand{font-size:12px;color:var(--muted);letter-spacing:1px}
+.om-model{font-size:17px;font-weight:800;margin:2px 0 6px}
+.om-price{color:var(--price);font-weight:800;font-size:22px}
+.om-price .yen{font-size:13px}
+.om-id{font-size:11px;color:#a3aab8;margin-top:2px}
+.om-tip{font-size:12px;color:#7b8394;background:#f4f6fa;border-radius:8px;
+  padding:8px 10px;margin-top:12px;text-align:left;line-height:1.6}
+.om-btns{display:flex;gap:10px;margin-top:14px}
+.om-btns button{flex:1;border:none;border-radius:9px;padding:10px 0;font-size:14px;
+  cursor:pointer;font-weight:700}
+.om-cancel{background:#eef0f4;color:#4a5060}
+.om-cancel:hover{background:#e2e6ee}
+.om-ok{background:var(--accent);color:#fff}
+.om-ok:hover{filter:brightness(1.08)}
 
 /* ---------- 表格 ---------- */
 .table-wrap{
@@ -731,7 +762,7 @@ footer{margin-top:auto;padding:16px 0 calc(18px + env(safe-area-inset-bottom,0px
 <aside id="navDrawer" class="nav-drawer" aria-label="分类菜单">
   <div class="nav-head">LYZ小卖部</div>
   <nav id="navList"></nav>
-  <div class="nav-date">数据生成于 2026-09-12 17:54</div>
+  <div class="nav-date">数据生成于 2026-09-12 20:29</div>
   <div class="nav-foot">
     <a class="nav-link" href="https://www.mousetester.cn/?utm_source=keyboard" target="_blank" rel="noopener">鼠标测试工具
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg>
@@ -828,7 +859,23 @@ footer{margin-top:auto;padding:16px 0 calc(18px + env(safe-area-inset-bottom,0px
   <div class="copy" style="color:#c6ccd8">此处禁止堆放垃圾，发现直接扔掉</div>
 </footer>
 
-<!-- 回到顶部 -->
+<!-- 订购确认弹窗 -->
+<div id="orderModal" class="om hidden">
+  <div class="om-box">
+    <div class="om-img" id="omImg"></div>
+    <div class="om-brand" id="omBrand"></div>
+    <div class="om-model" id="omModel"></div>
+    <div class="om-price" id="omPrice"></div>
+    <div class="om-id" id="omId"></div>
+    <div class="om-tip">点「确认订购」将复制商品信息并打开订购问卷,请把信息粘贴到问卷第 1 题,再填好你的花名即可提交。</div>
+    <div class="om-btns">
+      <button type="button" class="om-cancel" id="omCancel">取消</button>
+      <button type="button" class="om-ok" id="omOk">确认订购</button>
+    </div>
+  </div>
+</div>
+
+<!-- 大图灯箱 -->
 <button type="button" class="top-btn" id="topBtn" title="回到顶部" aria-label="回到顶部"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
 
 <!-- 大图灯箱 -->
@@ -870,7 +917,7 @@ footer{margin-top:auto;padding:16px 0 calc(18px + env(safe-area-inset-bottom,0px
 (function(){
 'use strict';
 
-var GEN_DATE = '2026-09-12 17:54';
+var GEN_DATE = '2026-09-12 20:29';
 var FIELDS = ['品牌','型号','键位','轴体','颜色','无线','购入价','购买时间','购买渠道','闲置价格'];
 
 var DEFAULT_DATA = JSON.parse(document.getElementById('kb-data').textContent);
@@ -1018,6 +1065,102 @@ function thumbUrl(t, pick){
 }
 function previewUrl(item, i){
   return FILTER_CFG.prevBase + '/' + stemOf(origsOf(item)[i]) + '.webp';
+}
+/* ---------- 订购表单 + 云端锁定 ---------- */
+/* 腾讯问卷:建好问卷后把链接填到 survey;问卷设置里需定义自定义参数 pid/model/price */
+var ORDER_CFG = { survey: 'https://wj.qq.com/s2/27863577/vp82/' };
+var LOCKS = {};   /* overlay.json:编号(去前导零的整数) → 状态 */
+function loadLocks(){
+  fetch('overlay.json?t=' + Date.now()).then(function(r){
+    return r.ok ? r.json() : {};
+  }).then(function(o){
+    LOCKS = o || {};
+    applyLocks();
+  }).catch(function(){ /* 拉不到就降级:不显示锁,网页照常 */ });
+}
+function lockIdOf(item){
+  var n = parseInt(str(item['编号']), 10);
+  return isNaN(n) ? null : n;
+}
+function isLocked(item){
+  var n = lockIdOf(item);
+  return n !== null && LOCKS[n] === true;
+}
+/* 渲染后同步锁定状态:灰按钮 + 订购确认中标签 */
+function applyLocks(){
+  var lockedSet = {};
+  Object.keys(LOCKS).forEach(function(k){
+    var n = parseInt(k, 10);
+    if(!isNaN(n)) lockedSet[n] = true;
+  });
+  document.querySelectorAll('#cardsView .card').forEach(function(card){
+    var n = parseInt(card.getAttribute('data-id'), 10);
+    var btn = card.querySelector('.order-btn');
+    var tag = card.querySelector('.lock-tag');
+    var locked = !!lockedSet[n];
+    if(btn){
+      btn.classList.toggle('locked', locked);
+      btn.textContent = locked ? '已订' : '订购';
+      btn.title = locked ? '已有人申请订购,待确认' : '申请订购该商品';
+    }
+    if(locked && !tag){
+      var s = document.createElement('span');
+      s.className = 'lock-tag';
+      s.textContent = '订购确认中';
+      card.querySelector('.card-img').appendChild(s);
+    } else if(!locked && tag){
+      tag.remove();
+    }
+  });
+}
+function orderBtnHtml(item){
+  if(item['已出售'] || str(item['状态']).trim()) return '';
+  return '<button type="button" class="order-btn" data-order="' + esc(item['编号']) + '">订购</button>';
+}
+var omItem = null;
+function openOrderForm(item){
+  if(isLocked(item)){ toast('该商品已有人申请订购,待卖家确认'); return; }
+  if(!ORDER_CFG.survey){ toast('订购功能准备中,敬请期待'); return; }
+  omItem = item;
+  var thumbs = thumbsOf(item);
+  $('#omImg').innerHTML = thumbs.length ? thumbPicture(thumbs[0], '', '(max-width:680px) 320px') : '';
+  $('#omBrand').textContent = str(item['品牌']);
+  $('#omModel').textContent = str(item['型号']) + comboHtml(item);
+  var p = str(item['闲置价格']);
+  $('#omPrice').innerHTML = (p && isFinite(Number(p))) ? '<span class="yen">¥</span>' + esc(money(p)) : esc(p || '面议');
+  $('#omId').textContent = '#' + str(item['编号']);
+  $('#orderModal').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+function closeOrderModal(){
+  $('#orderModal').classList.add('hidden');
+  document.body.style.overflow = '';
+  omItem = null;
+}
+/* 同步复制(在确认按钮的手势内执行,不会被新标签页抢焦点打断) */
+function copyOrderInfo(t){
+  var ta = document.createElement('textarea');
+  ta.value = t;
+  ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  var ok = false;
+  try { ok = document.execCommand('copy'); } catch(e){}
+  document.body.removeChild(ta);
+  if(!ok && navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(t).catch(function(){});
+  }
+}
+function omConfirm(){
+  var item = omItem;
+  closeOrderModal();
+  if(!item) return;
+  var info = '#' + str(item['编号']) + ' ' + str(item['品牌']) + ' ' + str(item['型号']);
+  copyOrderInfo(info);
+  var w = window.open(ORDER_CFG.survey, '_blank');
+  if(w){ toast('商品信息已复制,请粘贴到问卷第 1 题「编号·品牌·型号」'); }
+  else { toast('新标签页被拦截,请允许弹出窗口后重试(商品信息已在剪贴板)'); }
 }
 /* 图片加载完成渐显;加载失败换成占位图 */
 document.addEventListener('load', function(e){
@@ -1395,6 +1538,7 @@ function renderCards(){
   }).join('');
   DATA.forEach(function(it){ fillCardImages(it); });
   fitCompactNames();
+  applyLocks();
 }
 /* 紧凑卡片:型号过宽时逐步缩小字号,保持单行 */
 function fitCompactNames(){
@@ -1425,8 +1569,10 @@ function fillCardImages(item){
     box.title = '';
     item._cur = item._cur || 0;
     var count = (!FILTER_CFG.hideCount && thumbs.length>1) ? '<span class="count">'+thumbs.length+' 张</span>' : '';
-    box.innerHTML = thumbPicture(thumbs[item._cur], 'main', '(max-width:680px) 92vw, 350px') + badge + count;
+    box.innerHTML = thumbPicture(thumbs[item._cur], 'main', '(max-width:680px) 92vw, 350px') + badge + count + orderBtnHtml(item);
     box.onclick = function(){ openOriginal(item, item._cur || 0); };
+    var ob = box.querySelector('.order-btn');
+    if(ob) ob.onclick = function(ev){ ev.stopPropagation(); openOrderForm(item); };
   }else{
     box.innerHTML = '<img class="main noimg-main" src="'+NOIMG_SRC+'" alt="">' + badge;
     box.classList.add('no-img');
@@ -1829,6 +1975,9 @@ function bind(){
   $('#searchBtn').addEventListener('click', function(){
     searchOpen ? closeSearch() : openSearch();
   });
+  /* 订购确认弹窗 */
+  $('#omOk').addEventListener('click', omConfirm);
+  $('#omCancel').addEventListener('click', closeOrderModal);
   $('#search').addEventListener('keydown', function(e){
     if(e.key === 'Escape'){
       var inp = $('#search');
@@ -2211,6 +2360,7 @@ function init(){
   DATA = orderByBrand(DEFAULT_DATA.map(function(x){ return Object.assign({}, x, {_search:null}); }));
   bind();
   rebuild();
+  loadLocks();
 }
 
 init();
