@@ -357,11 +357,12 @@ tr.sold-tr:hover{background:#f2f4f9}
   background:var(--accent);color:#fff;font-size:12px;font-weight:700;
   padding:4px 13px;border-radius:999px;box-shadow:0 2px 6px rgba(16,24,40,.28)}
 .order-btn:hover{filter:brightness(1.1)}
-.order-btn.locked{background:#9aa6b8;pointer-events:none}
-/* 订购确认中:图片左下角蓝标 */
-.lock-tag{position:absolute;left:8px;bottom:8px;z-index:4;display:inline-block;
-  font-size:11px;font-weight:700;color:#fff;background:var(--accent);
-  padding:2px 9px;border-radius:999px;letter-spacing:1px;pointer-events:none}
+.order-btn.locked{display:none}
+/* 订购确认中:图片右下角黄标(原订购按钮位置),与订购按钮同尺寸 */
+.lock-tag{position:absolute;right:8px;bottom:8px;z-index:4;display:inline-block;
+  font-size:12px;font-weight:700;color:#5c3d00;background:linear-gradient(135deg,#ffe27a,#f5b916);
+  padding:4px 13px;border-radius:999px;letter-spacing:1px;pointer-events:none;
+  box-shadow:0 2px 6px rgba(120,84,0,.3)}
 /* 订购确认弹窗:居中,展示商品图与信息 */
 .om{position:fixed;inset:0;z-index:90;background:rgba(8,10,16,.55);
   display:flex;align-items:center;justify-content:center;padding:16px}
@@ -762,7 +763,7 @@ footer{margin-top:auto;padding:16px 0 calc(18px + env(safe-area-inset-bottom,0px
 <aside id="navDrawer" class="nav-drawer" aria-label="分类菜单">
   <div class="nav-head">LYZ小卖部</div>
   <nav id="navList"></nav>
-  <div class="nav-date">数据生成于 2026-09-12 20:29</div>
+  <div class="nav-date">数据生成于 2026-09-12 23:39</div>
   <div class="nav-foot">
     <a class="nav-link" href="https://www.mousetester.cn/?utm_source=keyboard" target="_blank" rel="noopener">鼠标测试工具
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg>
@@ -917,7 +918,7 @@ footer{margin-top:auto;padding:16px 0 calc(18px + env(safe-area-inset-bottom,0px
 (function(){
 'use strict';
 
-var GEN_DATE = '2026-09-12 20:29';
+var GEN_DATE = '2026-09-12 23:39';
 var FIELDS = ['品牌','型号','键位','轴体','颜色','无线','购入价','购买时间','购买渠道','闲置价格'];
 
 var DEFAULT_DATA = JSON.parse(document.getElementById('kb-data').textContent);
@@ -1084,43 +1085,102 @@ function lockIdOf(item){
 }
 function isLocked(item){
   var n = lockIdOf(item);
-  return n !== null && LOCKS[n] === true;
+  return n !== null && LOCKS[n] !== undefined;
 }
 /* 渲染后同步锁定状态:灰按钮 + 订购确认中标签 */
 function applyLocks(){
-  var lockedSet = {};
+  /* 锁值兼容两种形态:对象 {status,name}(新版,含花名) 或字符串(旧版) */
+  var locks = {};
   Object.keys(LOCKS).forEach(function(k){
     var n = parseInt(k, 10);
-    if(!isNaN(n)) lockedSet[n] = true;
+    if(!isNaN(n)) locks[n] = LOCKS[k];
   });
   document.querySelectorAll('#cardsView .card').forEach(function(card){
     var n = parseInt(card.getAttribute('data-id'), 10);
     var btn = card.querySelector('.order-btn');
     var tag = card.querySelector('.lock-tag');
-    var locked = !!lockedSet[n];
+    var ent = locks[n];
+    var locked = ent !== undefined;
+    var who = (ent && typeof ent === 'object' && ent.name) ? ent.name : '';
+    /* 卖家确认完成(Excel 状态非空)后,网页不再显示确认中标签 */
+    var confirmed = !!str(card.getAttribute('data-status') || '').trim();
     if(btn){
       btn.classList.toggle('locked', locked);
       btn.textContent = locked ? '已订' : '订购';
-      btn.title = locked ? '已有人申请订购,待确认' : '申请订购该商品';
+      btn.title = locked ? (who ? '「' + who + '」订购确认中' : '已有人申请订购,待确认') : '申请订购该商品';
     }
-    if(locked && !tag){
+    var text = who ? who + '确认中' : '订购确认中';
+    if(locked && !confirmed && !tag){
       var s = document.createElement('span');
       s.className = 'lock-tag';
-      s.textContent = '订购确认中';
+      s.textContent = text;
       card.querySelector('.card-img').appendChild(s);
-    } else if(!locked && tag){
+    } else if(tag && (!locked || confirmed)){
       tag.remove();
     }
   });
 }
 function orderBtnHtml(item){
+  /* 已售出、或状态已被卖家改为已预订/完成的,不再显示订购按钮与确认中标签 */
   if(item['已出售'] || str(item['状态']).trim()) return '';
   return '<button type="button" class="order-btn" data-order="' + esc(item['编号']) + '">订购</button>';
 }
 var omItem = null;
+/* 实时复查云端锁:点击订购/确认订购时再查一次 overlay,防止页面打开后别人刚下了单 */
+/* 复查三件事:云端锁 + 最新商品状态(卖家可能已改表发布)。status 非空返回其值 */
+function recheckLock(item, cb){
+  var pid = lockIdOf(item);
+  Promise.all([
+    fetch('overlay.json?t=' + Date.now()).then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; }),
+    fetch(location.pathname + '?ts=' + Date.now()).then(function(r){ return r.text(); }).catch(function(){ return ''; })
+  ]).then(function(res){
+    var o = res[0] || {};
+    LOCKS = o;
+    applyLocks();
+    var locked = isLocked(item);
+    var who = '';
+    var ent = LOCKS[String(pid)];
+    if(ent && typeof ent === 'object' && ent.name) who = ent.name;
+    /* 从最新页面 HTML 里解析该商品的状态(数据内嵌在 kb-data script 标签) */
+    var latestStatus = null;
+    var html = res[1];
+    if(html){
+      var m = html.match(/id="kb-data"[^>]*>([\s\S]*?)<\/script>/);
+      if(m){
+        try {
+          var arr = JSON.parse(m[1]);
+          for(var i = 0; i < arr.length; i++){
+            if(String(arr[i]['编号']).replace(/^0+/, '') === String(pid)){
+              latestStatus = String(arr[i]['状态'] || '').trim() || null;
+              break;
+            }
+          }
+        } catch(e){}
+      }
+    }
+    cb(locked, who, latestStatus);
+  });
+}
 function openOrderForm(item){
-  if(isLocked(item)){ toast('该商品已有人申请订购,待卖家确认'); return; }
+  if(isLocked(item)){ toast('该商品目前已处于「' + lockWhoOf(item) + '」的订购确认中,请刷新网页查看最新状态'); return; }
   if(!ORDER_CFG.survey){ toast('订购功能准备中,敬请期待'); return; }
+  recheckLock(item, function(locked, who, latestStatus){
+    if(latestStatus){
+      toast('该商品状态已更新为「' + latestStatus + '」,请刷新网页查看最新状态');
+      return;
+    }
+    if(locked){
+      toast('该商品目前已处于「' + (who || '其他人') + '」的订购确认中,请刷新网页查看最新状态');
+      return;
+    }
+    showOrderModal(item);
+  });
+}
+function lockWhoOf(item){
+  var ent = LOCKS[String(lockIdOf(item))];
+  return (ent && typeof ent === 'object' && ent.name) ? ent.name : '其他人';
+}
+function showOrderModal(item){
   omItem = item;
   var thumbs = thumbsOf(item);
   $('#omImg').innerHTML = thumbs.length ? thumbPicture(thumbs[0], '', '(max-width:680px) 320px') : '';
@@ -1156,11 +1216,22 @@ function omConfirm(){
   var item = omItem;
   closeOrderModal();
   if(!item) return;
-  var info = '#' + str(item['编号']) + ' ' + str(item['品牌']) + ' ' + str(item['型号']);
-  copyOrderInfo(info);
-  var w = window.open(ORDER_CFG.survey, '_blank');
-  if(w){ toast('商品信息已复制,请粘贴到问卷第 1 题「编号·品牌·型号」'); }
-  else { toast('新标签页被拦截,请允许弹出窗口后重试(商品信息已在剪贴板)'); }
+  /* 确认前实时复查:别人可能在你看页面的间隙已经下单 */
+  recheckLock(item, function(locked, who, latestStatus){
+    if(latestStatus){
+      toast('该商品状态已更新为「' + latestStatus + '」,无法继续订购,请刷新网页');
+      return;
+    }
+    if(locked){
+      toast('手慢了一步,该商品已被「' + (who || '其他人') + '」抢先订购,请刷新网页查看最新状态');
+      return;
+    }
+    var info = '#' + str(item['编号']) + ' ' + str(item['品牌']) + ' ' + str(item['型号']);
+    copyOrderInfo(info);
+    var w = window.open(ORDER_CFG.survey, '_blank');
+    if(w){ toast('商品信息已复制,请粘贴到问卷第 1 题「编号·品牌·型号」'); }
+    else { toast('新标签页被拦截,请允许弹出窗口后重试(商品信息已在剪贴板)'); }
+  });
 }
 /* 图片加载完成渐显;加载失败换成占位图 */
 document.addEventListener('load', function(e){
@@ -1531,7 +1602,7 @@ function renderCards(){
         + '<div class="meta">'+metaHtml(item)+'</div>'
         + '</div></div>';
     }
-    return '<article class="card'+(item['已出售']?' sold':(str(item['状态']).trim() === '失踪' ? ' missing' : ''))+'" data-id="'+esc(id)+'">'
+    return '<article class="card'+(item['已出售']?' sold':(str(item['状态']).trim() === '失踪' ? ' missing' : ''))+'" data-id="'+esc(id)+'" data-status="'+esc(str(item['状态']).trim())+'">'
       + newTagHtml(item)
       + '<div class="card-img" id="ci-'+esc(id)+'"></div>'
       + body + '</article>';
