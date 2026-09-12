@@ -765,7 +765,7 @@ footer{margin-top:auto;padding:16px 0 calc(18px + env(safe-area-inset-bottom,0px
 <aside id="navDrawer" class="nav-drawer" aria-label="分类菜单">
   <div class="nav-head">LYZ小卖部</div>
   <nav id="navList"></nav>
-  <div class="nav-date">数据生成于 2026-09-13 00:29</div>
+  <div class="nav-date">数据生成于 2026-09-13 00:41</div>
   <div class="nav-foot">
     <a class="nav-link" href="https://www.mousetester.cn/?utm_source=keyboard" target="_blank" rel="noopener">鼠标测试工具
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg>
@@ -870,7 +870,7 @@ footer{margin-top:auto;padding:16px 0 calc(18px + env(safe-area-inset-bottom,0px
     <div class="om-model" id="omModel"></div>
     <div class="om-price" id="omPrice"></div>
     <div class="om-id" id="omId"></div>
-    <div class="om-tip">确认后粘贴到问卷第 1 题并填花名即可。</div>
+    <div class="om-tip">确认后粘贴到问卷第 1 题并填花名即可。<br>首次复制时浏览器可能询问剪贴板权限,请选择「允许」。</div>
     <div class="om-btns">
       <button type="button" class="om-cancel" id="omCancel">取消</button>
       <button type="button" class="om-ok" id="omOk">确认订购</button>
@@ -920,7 +920,7 @@ footer{margin-top:auto;padding:16px 0 calc(18px + env(safe-area-inset-bottom,0px
 (function(){
 'use strict';
 
-var GEN_DATE = '2026-09-13 00:29';
+var GEN_DATE = '2026-09-13 00:41';
 var FIELDS = ['品牌','型号','键位','轴体','颜色','无线','购入价','购买时间','购买渠道','闲置价格'];
 
 var DEFAULT_DATA = JSON.parse(document.getElementById('kb-data').textContent);
@@ -1195,7 +1195,7 @@ function closeOrderModal(){
   omItem = null;
 }
 /* 同步复制(在确认按钮的手势内执行,不会被新标签页抢焦点打断) */
-function copyOrderInfo(t){
+function copyOrderInfo(t, onDone){
   var ta = document.createElement('textarea');
   ta.value = t;
   ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
@@ -1205,9 +1205,11 @@ function copyOrderInfo(t){
   var ok = false;
   try { ok = document.execCommand('copy'); } catch(e){}
   document.body.removeChild(ta);
-  if(!ok && navigator.clipboard && navigator.clipboard.writeText){
-    navigator.clipboard.writeText(t).catch(function(){});
-  }
+  if(ok){ if(onDone) onDone(true); return; }
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(t).then(function(){ if(onDone) onDone(true); },
+      function(){ if(onDone) onDone(false); });
+  } else if(onDone){ onDone(false); }
 }
 function omConfirm(){
   var item = omItem;
@@ -1232,10 +1234,18 @@ function omConfirm(){
     }
     closeOrderModal();
     var info = '#' + str(item['编号']) + ' ' + str(item['品牌']) + ' ' + str(item['型号']);
-    copyOrderInfo(info);
-    var w = window.open(ORDER_CFG.survey, '_blank');
-    if(w){ toast('商品信息已复制,请粘贴到问卷第 1 题「编号·品牌·型号」'); }
-    else { toast('新标签页被拦截,请允许弹出窗口后重试(商品信息已在剪贴板)'); }
+    copyOrderInfo(info, function(ok){
+      if(ok){
+        var w = window.open(ORDER_CFG.survey, '_blank');
+        if(w){ toast('商品信息已复制,请粘贴到问卷第 1 题「编号·品牌·型号」'); }
+        else { toast('新标签页被拦截,请允许弹出窗口后重试(商品信息已在剪贴板)'); }
+      } else {
+        /* 剪贴板被拒:提示改用卡片上的复制按钮,或手动复制 */
+        if(confirm('复制未成功:浏览器可能拦截了剪贴板权限。\n\n可以回到商品卡片点复制按钮复制信息,或手动复制以下内容后打开问卷:\n\n' + info)){
+          window.open(ORDER_CFG.survey, '_blank');
+        }
+      }
+    });
   });
 }
 /* 图片加载完成渐显;加载失败换成占位图 */
