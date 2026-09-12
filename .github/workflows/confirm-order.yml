@@ -3,11 +3,11 @@ on:
   workflow_dispatch:
     inputs:
       pid:
-        description: '商品编号(答卷第 1 题开头的数字,如 129)'
+        description: '商品编号'
         required: true
         type: string
       name:
-        description: '买家花名(答卷第 3 题,原样照抄)'
+        description: '买家花名'
         required: true
         type: string
 
