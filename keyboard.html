@@ -369,7 +369,7 @@ body.locks-ready .order-btn{visibility:visible}
 .om{position:fixed;inset:0;z-index:90;background:rgba(8,10,16,.55);
   display:flex;align-items:center;justify-content:center;padding:16px}
 .om-box{background:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(16,24,40,.35);
-  max-width:340px;width:100%;padding:16px;text-align:center}
+  max-width:380px;width:100%;padding:16px;text-align:center}
 .om-img{border-radius:10px;overflow:hidden;background:#f3f5f9;margin-bottom:12px}
 .om-img picture,.om-img img{width:100%;display:block}
 .om-brand{font-size:12px;color:var(--muted);letter-spacing:1px}
@@ -386,6 +386,19 @@ body.locks-ready .order-btn{visibility:visible}
 .om-cancel:hover{background:#e2e6ee}
 .om-ok{background:var(--accent);color:#fff}
 .om-ok:hover{filter:brightness(1.08)}
+
+/* 表格视图:预定列按钮 */
+.c-order{text-align:center;white-space:nowrap;padding:4px 6px}
+.c-order .order-btn{position:static;display:inline-block;visibility:visible}
+body:not(.locks-ready) .c-order .order-btn{visibility:hidden}
+.c-order .order-btn.locked{background:#9aa6b8;pointer-events:none}
+/* 表格图片格右上角的 NEW 角标(参照卡片丝带样式,小号) */
+.ti-wrap{position:relative;display:inline-block}
+.new-corner{position:absolute;top:2px;right:2px;z-index:3;
+  font-size:9px;font-weight:800;color:#5c3d00;letter-spacing:1px;
+  background:linear-gradient(135deg,#ffe27a,#f5b916);
+  padding:1px 6px;border-radius:4px;
+  box-shadow:0 1px 4px rgba(120,84,0,.35);pointer-events:none}
 
 /* ---------- 表格 ---------- */
 .table-wrap{
@@ -414,7 +427,7 @@ tbody tr:last-child td{border-bottom:none}
 }
 .ti-row{display:inline-flex;gap:4px;vertical-align:middle}
 th.c-img{white-space:nowrap;width:1%}
-.c-img{width:1%;max-width:120px}
+.c-img{width:1%;max-width:120px;position:relative}
 .noimg{color:#c3c9d6}
 .c-st{white-space:nowrap}
 .st-tag{display:inline-block;font-size:11px;font-weight:600;color:#1d4ed8;
@@ -765,7 +778,7 @@ footer{margin-top:auto;padding:16px 0 calc(18px + env(safe-area-inset-bottom,0px
 <aside id="navDrawer" class="nav-drawer" aria-label="分类菜单">
   <div class="nav-head">LYZ小卖部</div>
   <nav id="navList"></nav>
-  <div class="nav-date">数据生成于 2026-09-13 00:41</div>
+  <div class="nav-date">数据生成于 2026-09-13 01:44</div>
   <div class="nav-foot">
     <a class="nav-link" href="https://www.mousetester.cn/?utm_source=keyboard" target="_blank" rel="noopener">鼠标测试工具
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg>
@@ -873,7 +886,7 @@ footer{margin-top:auto;padding:16px 0 calc(18px + env(safe-area-inset-bottom,0px
     <div class="om-tip">确认后粘贴到问卷第 1 题并填花名即可。<br>首次复制时浏览器可能询问剪贴板权限,请选择「允许」。</div>
     <div class="om-btns">
       <button type="button" class="om-cancel" id="omCancel">取消</button>
-      <button type="button" class="om-ok" id="omOk">确认订购</button>
+      <button type="button" class="om-ok" id="omOk">确认预定</button>
     </div>
   </div>
 </div>
@@ -920,7 +933,7 @@ footer{margin-top:auto;padding:16px 0 calc(18px + env(safe-area-inset-bottom,0px
 (function(){
 'use strict';
 
-var GEN_DATE = '2026-09-13 00:41';
+var GEN_DATE = '2026-09-13 01:44';
 var FIELDS = ['品牌','型号','键位','轴体','颜色','无线','购入价','购买时间','购买渠道','闲置价格'];
 
 var DEFAULT_DATA = JSON.parse(document.getElementById('kb-data').textContent);
@@ -1112,10 +1125,10 @@ function applyLocks(){
     var confirmed = !!str(card.getAttribute('data-status') || '').trim();
     if(btn){
       btn.classList.toggle('locked', locked);
-      btn.textContent = locked ? '已订' : '订购';
-      btn.title = locked ? (who ? '「' + who + '」订购确认中' : '已有人申请订购,待确认') : '申请订购该商品';
+      btn.textContent = locked ? '已订' : '预定';
+      btn.title = locked ? (who ? '「' + who + '」预定确认中' : '已有人申请预定,待确认') : '申请预定该商品';
     }
-    var text = who ? who + '确认中' : '订购确认中';
+    var text = who ? who + '确认中' : '预定确认中';
     if(locked && !confirmed && !tag){
       var s = document.createElement('span');
       s.className = 'lock-tag';
@@ -1129,10 +1142,10 @@ function applyLocks(){
 function orderBtnHtml(item){
   /* 已售出、或状态已被卖家改为已预订/完成的,不再显示订购按钮与确认中标签 */
   if(item['已出售'] || str(item['状态']).trim()) return '';
-  return '<button type="button" class="order-btn" data-order="' + esc(item['编号']) + '">订购</button>';
+  return '<button type="button" class="order-btn" data-order="' + esc(item['编号']) + '">预定</button>';
 }
 var omItem = null;
-/* 实时复查云端锁:点击订购/确认订购时再查一次 overlay,防止页面打开后别人刚下了单 */
+/* 实时复查云端锁:点击订购/确认预定时再查一次 overlay,防止页面打开后别人刚下了单 */
 /* 复查三件事:云端锁 + 最新商品状态(卖家可能已改表发布)。status 非空返回其值 */
 function recheckLock(item, cb){
   var pid = lockIdOf(item);
@@ -1169,8 +1182,8 @@ function recheckLock(item, cb){
 }
 function openOrderForm(item){
   /* 外层点击不联网(页面已加载的锁定数据本地判断),弹窗秒开 */
-  if(isLocked(item)){ toast('该商品目前已处于「' + lockWhoOf(item) + '」的订购确认中,请刷新网页查看最新状态'); return; }
-  if(!ORDER_CFG.survey){ toast('订购功能准备中,敬请期待'); return; }
+  if(isLocked(item)){ toast('该商品目前已处于「' + lockWhoOf(item) + '」的预定确认中,请刷新网页查看最新状态'); return; }
+  if(!ORDER_CFG.survey){ toast('预定功能准备中,敬请期待'); return; }
   showOrderModal(item);
 }
 function lockWhoOf(item){
@@ -1222,14 +1235,14 @@ function omConfirm(){
   /* 复查:别人可能在你看页面的间隙已经下单/卖家已改状态 */
   recheckLock(item, function(locked, who, latestStatus){
     btn.disabled = false;
-    btn.textContent = '确认订购';
+    btn.textContent = '确认预定';
     if(latestStatus){
-      toast('该商品状态已更新为「' + latestStatus + '」,无法继续订购,请刷新网页');
+      toast('该商品状态已更新为「' + latestStatus + '」,无法继续预定,请刷新网页');
       return;
     }
     if(locked){
       closeOrderModal();
-      toast('手慢了一步,该商品已被「' + (who || '其他人') + '」抢先订购,请刷新网页查看最新状态');
+      toast('手慢了一步,该商品已被「' + (who || '其他人') + '」抢先预定,请刷新网页查看最新状态');
       return;
     }
     closeOrderModal();
@@ -1773,12 +1786,16 @@ function fillTableThumb(item){
   var cell = document.getElementById('ti-'+item['编号']);
   if(!cell) return;
   var thumbs = thumbsOf(item);
+  var isNew = str(item['新品']).trim() === '1';
+  if(cell.hasAttribute('data-new')) cell.removeAttribute('data-new');
+  if(isNew) cell.setAttribute('data-new', '1');
   if(thumbs.length){
     /* 鼠标页有两张图时并排展示 */
     var imgs = thumbs.slice(0, 2).map(function(t, i){
       return thumbPicture(t, '', '60px');
     }).join('');
-    cell.innerHTML = '<span class="ti-row">'+imgs+'</span>';
+    var corner = isNew ? '<span class="new-corner">NEW</span>' : '';
+    cell.innerHTML = '<span class="ti-wrap">' + corner + '<span class="ti-row">'+imgs+'</span></span>';
     cell.style.cursor = '';
     cell.title = '';
     Array.prototype.forEach.call(cell.querySelectorAll('img'), function(im){
@@ -2450,6 +2467,15 @@ function init(){
 }
 
 init();
+
+/* 每次页面重新可见时重查 overlay:覆盖 F5 之外的返回/前进缓存恢复(bfcache 不重跑脚本,数据会是旧的) */
+window.addEventListener('pageshow', function(e){
+  loadLocks();
+});
+/* 从问卷等其它标签页切回来时也刷新一次 */
+document.addEventListener('visibilitychange', function(){
+  if(document.visibilityState === 'visible') loadLocks();
+});
 
 /* 网络空闲时后台预载全部缩略图(360/720 webp 双档,兼容普通屏与高清屏),滚动到时即秒开;省流模式开启则跳过 */
 function preloadThumbs(){
