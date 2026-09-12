@@ -21,19 +21,57 @@ jobs:
       - name: 检出仓库
         uses: actions/checkout@v4
 
-      - name: 检查是否已被订购(先到先得)
+      - name: 检查商品状态与重复订购(先到先得)
         run: |
           python3 - <<'PY'
-          import json, sys
+          import json, re, sys
           pid = "${{ inputs.pid }}".strip()
-          with open('overlay.json', 'r', encoding='utf-8') as f:
+          pid_n = str(int(pid)) if pid.isdigit() else None
+
+          # 1) 商品必须存在且处于待售中(状态为空、未售出)
+          product = None
+          for page in ("mouse.html", "keyboard.html"):
+              try:
+                  html = open(page, encoding="utf-8").read()
+              except FileNotFoundError:
+                  continue
+              m = re.search(r'id="kb-data"[^>]*>(.*?)</script>', html, re.S)
+              if not m:
+                  continue
+              try:
+                  arr = json.loads(m.group(1))
+              except Exception:
+                  continue
+              for x in arr:
+                  try:
+                      if str(int(float(str(x.get("编号", ""))))) == pid_n:
+                          product = x
+                          break
+                  except (ValueError, TypeError):
+                      continue
+              if product:
+                  break
+          if not product:
+              print("!! 找不到商品 #%s,请检查编号" % pid)
+              sys.exit(1)
+          status = str(product.get("状态") or "").strip()
+          if status:
+              print("!! 商品 #%s 当前状态为「%s」,非待售中,拒绝确认" % (pid, status))
+              sys.exit(1)
+          if product.get("已出售"):
+              print("!! 商品 #%s 已售出,拒绝确认" % pid)
+              sys.exit(1)
+          print("商品 #%s 处于待售中,继续检查重复订购" % pid)
+
+          # 2) 未被其他人锁定(先到先得)
+          with open("overlay.json", encoding="utf-8") as f:
               ov = json.load(f)
-          if pid in ov:
-              holder = ov[pid]
+          if pid_n in ov:
+              holder = ov[pid_n]
               holder_name = holder.get("name", "") if isinstance(holder, dict) else ""
               print("!! 商品 #%s 已被「%s」锁定,本次确认被拒绝" % (pid, holder_name or "他人"))
               sys.exit(1)
-          print("商品 #%s 未被锁定,继续确认" % pid)
+          print("商品 #%s 未被锁定,可以确认" % pid)
           PY
 
       - name: 写入锁定状态与花名
