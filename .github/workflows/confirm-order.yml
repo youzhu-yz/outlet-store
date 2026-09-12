@@ -21,6 +21,21 @@ jobs:
       - name: 检出仓库
         uses: actions/checkout@v4
 
+      - name: 检查是否已被订购(先到先得)
+        run: |
+          python3 - <<'PY'
+          import json, sys
+          pid = "${{ inputs.pid }}".strip()
+          with open('overlay.json', 'r', encoding='utf-8') as f:
+              ov = json.load(f)
+          if pid in ov:
+              holder = ov[pid]
+              holder_name = holder.get("name", "") if isinstance(holder, dict) else ""
+              print("!! 商品 #%s 已被「%s」锁定,本次确认被拒绝" % (pid, holder_name or "他人"))
+              sys.exit(1)
+          print("商品 #%s 未被锁定,继续确认" % pid)
+          PY
+
       - name: 写入锁定状态与花名
         run: |
           python3 - <<'PY'
