@@ -1,0 +1,44 @@
+name: 确认订购
+on:
+  workflow_dispatch:
+    inputs:
+      pid:
+        description: '商品编号(如 129)'
+        required: true
+        type: string
+      note:
+        description: '备注(可选,如买家称呼)'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  lock:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出仓库
+        uses: actions/checkout@v4
+
+      - name: 写入锁定状态
+        run: |
+          python3 - <<'PY'
+          import json
+          pid = "${{ inputs.pid }}".strip()
+          with open('overlay.json', 'r', encoding='utf-8') as f:
+              ov = json.load(f)
+          ov[pid] = "已预订"
+          with open('overlay.json', 'w', encoding='utf-8') as f:
+              json.dump(ov, f, ensure_ascii=False, indent=2)
+              f.write('\n')
+          print('overlay:', ov)
+          PY
+
+      - name: 提交并推送
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add overlay.json
+          git commit -m "锁定商品 #${{ inputs.pid }} ${{ inputs.note }}"
+          git push
