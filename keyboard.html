@@ -763,7 +763,7 @@ footer{margin-top:auto;padding:16px 0 calc(18px + env(safe-area-inset-bottom,0px
 <aside id="navDrawer" class="nav-drawer" aria-label="分类菜单">
   <div class="nav-head">LYZ小卖部</div>
   <nav id="navList"></nav>
-  <div class="nav-date">数据生成于 2026-09-12 23:39</div>
+  <div class="nav-date">数据生成于 2026-09-12 23:57</div>
   <div class="nav-foot">
     <a class="nav-link" href="https://www.mousetester.cn/?utm_source=keyboard" target="_blank" rel="noopener">鼠标测试工具
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg>
@@ -918,7 +918,7 @@ footer{margin-top:auto;padding:16px 0 calc(18px + env(safe-area-inset-bottom,0px
 (function(){
 'use strict';
 
-var GEN_DATE = '2026-09-12 23:39';
+var GEN_DATE = '2026-09-12 23:57';
 var FIELDS = ['品牌','型号','键位','轴体','颜色','无线','购入价','购买时间','购买渠道','闲置价格'];
 
 var DEFAULT_DATA = JSON.parse(document.getElementById('kb-data').textContent);
@@ -1162,19 +1162,10 @@ function recheckLock(item, cb){
   });
 }
 function openOrderForm(item){
+  /* 外层点击不联网(页面已加载的锁定数据本地判断),弹窗秒开 */
   if(isLocked(item)){ toast('该商品目前已处于「' + lockWhoOf(item) + '」的订购确认中,请刷新网页查看最新状态'); return; }
   if(!ORDER_CFG.survey){ toast('订购功能准备中,敬请期待'); return; }
-  recheckLock(item, function(locked, who, latestStatus){
-    if(latestStatus){
-      toast('该商品状态已更新为「' + latestStatus + '」,请刷新网页查看最新状态');
-      return;
-    }
-    if(locked){
-      toast('该商品目前已处于「' + (who || '其他人') + '」的订购确认中,请刷新网页查看最新状态');
-      return;
-    }
-    showOrderModal(item);
-  });
+  showOrderModal(item);
 }
 function lockWhoOf(item){
   var ent = LOCKS[String(lockIdOf(item))];
@@ -1214,18 +1205,26 @@ function copyOrderInfo(t){
 }
 function omConfirm(){
   var item = omItem;
-  closeOrderModal();
   if(!item) return;
-  /* 确认前实时复查:别人可能在你看页面的间隙已经下单 */
+  /* 立即反馈:按钮进入检查中状态(弹窗保持开着) */
+  var btn = $('#omOk');
+  btn.disabled = true;
+  btn.textContent = '正在检查…';
+  toast('正在检查商品最新状态…');
+  /* 复查:别人可能在你看页面的间隙已经下单/卖家已改状态 */
   recheckLock(item, function(locked, who, latestStatus){
+    btn.disabled = false;
+    btn.textContent = '确认订购';
     if(latestStatus){
       toast('该商品状态已更新为「' + latestStatus + '」,无法继续订购,请刷新网页');
       return;
     }
     if(locked){
+      closeOrderModal();
       toast('手慢了一步,该商品已被「' + (who || '其他人') + '」抢先订购,请刷新网页查看最新状态');
       return;
     }
+    closeOrderModal();
     var info = '#' + str(item['编号']) + ' ' + str(item['品牌']) + ' ' + str(item['型号']);
     copyOrderInfo(info);
     var w = window.open(ORDER_CFG.survey, '_blank');
