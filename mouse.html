@@ -747,6 +747,37 @@ footer{margin-top:auto;padding:16px 0 calc(18px + env(safe-area-inset-bottom,0px
 }
 .nav-link:hover{background:#f1f4f9}
 .nav-link svg{opacity:.45}
+button.nav-link{border:none;background:none;width:100%;font:inherit;text-align:left;cursor:pointer;color:var(--ink)}
+/* 网页驱动:左侧滑出面板 */
+.drv-mask{position:fixed;inset:0;background:rgba(15,18,28,.45);z-index:72;
+  opacity:0;pointer-events:none;transition:opacity .22s}
+.drv-mask.show{opacity:1;pointer-events:auto}
+.drv-drawer{
+  position:fixed;left:0;top:0;bottom:0;width:318px;max-width:90vw;background:#fff;z-index:73;
+  transform:translateX(-102%);transition:transform .25s ease;
+  box-shadow:8px 0 32px rgba(0,0,0,.18);padding:14px 12px;
+  display:flex;flex-direction:column;
+}
+.drv-drawer.open{transform:none}
+.drv-head{display:flex;align-items:center;justify-content:space-between;gap:8px;
+  font-size:13px;font-weight:700;color:var(--muted);letter-spacing:1px;padding:8px 6px 6px}
+.drv-close{border:none;background:none;cursor:pointer;color:var(--muted);font-size:15px;
+  line-height:1;padding:4px 8px;border-radius:8px;font-family:inherit}
+.drv-close:hover{background:#f1f4f9}
+.drv-tip{font-size:11px;color:#b6bdcb;line-height:1.5;padding:0 6px 10px}
+.drv-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.drv-sec{padding:2px 6px 14px}
+.drv-title{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:1px;margin:0 0 8px}
+.drv-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.drv-item{display:inline-flex;align-items:center;justify-content:center;gap:4px;
+  font-size:13px;font-weight:600;line-height:1.2;
+  color:var(--ink);text-decoration:none;background:#f4f6fa;border:1px solid var(--line);
+  border-radius:10px;padding:9px 8px}
+.drv-item:hover{background:var(--accent-weak);border-color:var(--accent);color:var(--accent)}
+.drv-item svg{opacity:.45}
+.drv-item.off{color:#b6bdcb;background:#fafbfd;border-color:#eef0f5;cursor:default}
+.drv-item.off:hover{background:#fafbfd;border-color:#eef0f5;color:#b6bdcb}
+.drv-empty{font-size:12px;color:#b6bdcb}
 </style>
 </head>
 <body>
@@ -783,14 +814,36 @@ footer{margin-top:auto;padding:16px 0 calc(18px + env(safe-area-inset-bottom,0px
 <aside id="navDrawer" class="nav-drawer" aria-label="分类菜单">
   <div class="nav-head">LYZ小卖部</div>
   <nav id="navList"></nav>
-  <div class="nav-date">数据生成于 2026-09-14 03:16</div>
+  <div class="nav-date">数据生成于 2026-09-14 03:40</div>
   <div class="nav-foot">
+    <button type="button" class="nav-link" id="drvBtn">网页驱动
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+    </button>
     <a class="nav-link" href="https://www.mousetester.cn/?utm_source=keyboard" target="_blank" rel="noopener">鼠标测试工具
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg>
     </a>
     <a class="nav-link" href="https://www.keyboardtest.cn/" target="_blank" rel="noopener">键盘测试工具
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg>
     </a>
+  </div>
+</aside>
+
+<div id="drvMask" class="drv-mask"></div>
+<aside id="drvDrawer" class="drv-drawer" aria-label="网页驱动">
+  <div class="drv-head">
+    <span>网页驱动</span>
+    <button type="button" class="drv-close" id="drvClose" title="关闭" aria-label="关闭">✕</button>
+  </div>
+  <div class="drv-tip">点品牌名在新标签页打开官方网页版驱动</div>
+  <div class="drv-body">
+    <section class="drv-sec">
+      <h4 class="drv-title">键盘</h4>
+      <div class="drv-grid" id="drvKeys"></div>
+    </section>
+    <section class="drv-sec">
+      <h4 class="drv-title">鼠标</h4>
+      <div class="drv-grid" id="drvMouse"></div>
+    </section>
   </div>
 </aside>
 
@@ -939,7 +992,7 @@ footer{margin-top:auto;padding:16px 0 calc(18px + env(safe-area-inset-bottom,0px
 (function(){
 'use strict';
 
-var GEN_DATE = '2026-09-14 03:16';
+var GEN_DATE = '2026-09-14 03:40';
 var FIELDS = ['品牌','型号','键位','轴体','颜色','无线','购入价','购买时间','购买渠道','闲置价格'];
 
 var DEFAULT_DATA = JSON.parse(document.getElementById('kb-data').textContent);
@@ -1006,15 +1059,15 @@ var PY_INIT_MAP = (function(){
     k:'凯空宽可科卡',
     l:'狼罗蓝雷龙灵利鹿绿朗立乐联猎麟',
     m:'米梦明幂马猫茂曼美麦木慕',
-    n:'宁南诺尼奴农',
+    n:'宁南诺尼奴农怒',
     p:'派品普鹏平朋佩',
     q:'前青轻奇器强琴清秋群启千潜',
     r:'日睿若然荣忍',
     s:'山圣神水三世士双尚少深十狮闪顺松森',
     t:'天铁铜桃太泰陶同图甜',
-    w:'物微王无文万卫温沃武舞',
+    w:'物微王无文万卫温沃武舞瓦',
     x:'新小星雪幸心欣鑫兄雄玄西夏修秀',
-    y:'银月幽优一亿义意因音英影永佑宇雨语燕阳扬洋业野夜鹰艺逸易',
+    y:'银月幽优一亿义意因音英影永佑宇雨语燕阳扬洋业野夜鹰艺逸易由',
     z:'芝之中至志智卓子紫珍真正织直追'
   };
   var map = {};
@@ -2432,6 +2485,7 @@ function bind(){
   document.addEventListener('keydown', function(e){
     var lbOpen = !$('#lightbox').classList.contains('hidden');
     if(e.key==='Escape'){
+      if(drvOpen){ closeDrv(); return; }
       if(navOpen){ closeNav(); return; }
       if(!$('#payModal').classList.contains('hidden')){ hidePay(); return; }
       if(lbOpen) closeLb();
@@ -2508,6 +2562,46 @@ document.getElementById('navBtn2').addEventListener('click', function(e){
   navOpen ? closeNav() : openNav();
 });
 document.getElementById('navMask').addEventListener('click', closeNav);
+
+/* ---------- 网页驱动入口(分类菜单底部,右侧滑出) ---------- */
+var DRIVERS = {"键盘":[{"品牌":"ROG","链接":"https://gearlink.asus.com.cn/"},{"品牌":"雷蛇","链接":"https://synapse.razer.com/dashboard/"},{"品牌":"Wooting","链接":"https://wootility.io/"},{"品牌":"瓦尔基里","链接":"https://valkyrie.hubx.pro/"},{"品牌":"MelGeek","链接":"https://hive.melgeek.cn/"}],"鼠标":[{"品牌":"NINJUTSO","链接":"https://ninjaforce.ninjutso.cn/#/performance"},{"品牌":"WAIZOWL","链接":"https://owlnest.waizowl.com/"},{"品牌":"怒喵","链接":"https://diy.angrymiao.com/dongle-mouse/"},{"品牌":"PULSAR","链接":"https://bbb.pulsar.gg/zywoo/"},{"品牌":"因科特","链接":"https://incott.net/mouse/"},{"品牌":"雷柏","链接":"https://hub.rapoo.cn/home"},{"品牌":"ATK","链接":"https://v3-hub.atkgear.com/"},{"品牌":"ROG","链接":"https://gearlink.asus.com.cn/"},{"品牌":"达摩鲨","链接":"https://www.darmoshark.cc/#/mouse/home"},{"品牌":"IPI","链接":"https://shan.ipigame.cn/devices"},{"品牌":"CRDRAKO","链接":"https://panel.crdrako.com/#/"},{"品牌":"小米","链接":"https://web.mieco.net/yuemi--manual/mouse/h/p/index.html#/M002/home"},{"品牌":"万灵","链接":"https://chn.wlmouse.com/gg/#/project/items"},{"品牌":"LAMZU","链接":"https://www.lamzu.net/#/project/items"},{"品牌":"雷蛇","链接":"https://synapse.razer.com/dashboard/"},{"品牌":"由刃","链接":"https://hub.oyrein.com/"},{"品牌":"LUNAFURY","链接":"https://mouse.lunafury.games/#/project/items"},{"品牌":"VGN","链接":"https://hub.vgnlab.com.cn/#/"},{"品牌":"瓦尔基里","链接":"https://valkyrie.hubx.pro/"},{"品牌":"MelGeek","链接":"https://hive.melgeek.cn/"},{"品牌":"PWNAGE","链接":"https://pwnage.com/pages/drivers-hub"}]};
+function drvChip(d){
+  var brand = esc(d['品牌']);
+  var url = str(d['链接']).trim();
+  /* 只认 http(s):表里误填别的内容时只显示品牌,不做成链接 */
+  if(/^https?:\/\//i.test(url)){
+    return '<a class="drv-item" href="' + esc(url) + '" target="_blank" rel="noopener">' + brand
+      + '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg></a>';
+  }
+  return '<span class="drv-item off" title="表里没填链接">' + brand + '</span>';
+}
+var drvOpen = false;
+function openDrv(){
+  drvOpen = true;
+  document.getElementById('drvDrawer').classList.add('open');
+  document.getElementById('drvMask').classList.add('show');
+}
+function closeDrv(){
+  drvOpen = false;
+  document.getElementById('drvDrawer').classList.remove('open');
+  document.getElementById('drvMask').classList.remove('show');
+}
+(function(){
+  var btn = document.getElementById('drvBtn');
+  var byBrand = function(a, b){ return cmpBrand(a['品牌'], b['品牌']); };   /* 与商品列表同一套首字母规则 */
+  var keys = (DRIVERS['键盘'] || []).slice().sort(byBrand);
+  var mice = (DRIVERS['鼠标'] || []).slice().sort(byBrand);
+  if(!keys.length && !mice.length){ btn.style.display = 'none'; return; }   /* 表空就不显示入口 */
+  document.getElementById('drvKeys').innerHTML = keys.map(drvChip).join('') || '<span class="drv-empty">暂无</span>';
+  document.getElementById('drvMouse').innerHTML = mice.map(drvChip).join('') || '<span class="drv-empty">暂无</span>';
+  btn.addEventListener('click', function(e){
+    e.stopPropagation();
+    closeNav();                                  /* 收起左侧分类菜单,免得两个抽屉叠着 */
+    drvOpen ? closeDrv() : openDrv();
+  });
+  document.getElementById('drvMask').addEventListener('click', closeDrv);
+  document.getElementById('drvClose').addEventListener('click', closeDrv);
+})();
 
 /* ---------- 启动 ---------- */
 function init(){
