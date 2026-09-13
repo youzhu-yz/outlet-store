@@ -372,13 +372,17 @@ body.locks-ready .order-btn{visibility:visible}
   max-width:380px;width:100%;padding:16px;text-align:center}
 .om-img{border-radius:10px;overflow:hidden;background:#f3f5f9;margin-bottom:12px}
 .om-img picture,.om-img img{width:100%;display:block}
+.om-img{position:relative}
 .om-brand{font-size:12px;color:var(--muted);letter-spacing:1px}
 .om-model{font-size:17px;font-weight:800;margin:2px 0 6px}
-.om-price{color:var(--price);font-weight:800;font-size:22px}
-.om-price .yen{font-size:13px}
-.om-id{font-size:11px;color:#a3aab8;margin-top:2px}
+.om-price{color:var(--price);font-weight:800;font-size:27.5px;line-height:1.2}
+.om-price .yen{font-size:16px}
+.om-id{position:absolute;top:8px;left:8px;z-index:3;
+  font-size:11px;font-weight:700;color:#fff;background:rgba(20,24,34,.55);
+  padding:2px 9px;border-radius:999px;letter-spacing:1px}
 .om-tip{font-size:12px;color:#7b8394;background:#f4f6fa;border-radius:8px;
-  padding:8px 10px;margin-top:12px;text-align:left;line-height:1.6}
+  padding:8px 10px;margin-top:12px;text-align:center;line-height:1.6}
+.om-warn{color:#d92b2b;font-size:17px;font-weight:700;margin-top:10px;text-align:center;letter-spacing:.5px}
 .om-btns{display:flex;gap:10px;margin-top:14px}
 .om-btns button{flex:1;border:none;border-radius:9px;padding:10px 0;font-size:14px;
   cursor:pointer;font-weight:700}
@@ -388,17 +392,19 @@ body.locks-ready .order-btn{visibility:visible}
 .om-ok:hover{filter:brightness(1.08)}
 
 /* 表格视图:预定列按钮 */
+.c-order-h{white-space:nowrap;padding:4px 6px;font-weight:600}
 .c-order{text-align:center;white-space:nowrap;padding:4px 6px}
 .c-order .order-btn{position:static;display:inline-block;visibility:visible}
 body:not(.locks-ready) .c-order .order-btn{visibility:hidden}
 .c-order .order-btn.locked{background:#9aa6b8;pointer-events:none}
-/* 表格图片格右上角的 NEW 角标(参照卡片丝带样式,小号) */
-.ti-wrap{position:relative;display:inline-block}
-.new-corner{position:absolute;top:2px;right:2px;z-index:3;
+/* 表格图片格右上角的 NEW 角标:斜挂跨在格角上 */
+.c-img-cell{position:relative}
+.new-corner{position:absolute;top:-6px;right:-4px;z-index:3;
   font-size:9px;font-weight:800;color:#5c3d00;letter-spacing:1px;
   background:linear-gradient(135deg,#ffe27a,#f5b916);
-  padding:1px 6px;border-radius:4px;
-  box-shadow:0 1px 4px rgba(120,84,0,.35);pointer-events:none}
+  padding:1px 7px;border-radius:4px;
+  box-shadow:0 1px 4px rgba(120,84,0,.35);pointer-events:none;
+  transform:rotate(-6deg)}
 
 /* ---------- 表格 ---------- */
 .table-wrap{
@@ -683,7 +689,7 @@ footer{margin-top:auto;padding:16px 0 calc(18px + env(safe-area-inset-bottom,0px
   .copy-btn{padding:6px}
   /* 付款码:手机端为底部抽屉 */
   .pay-pop{
-    position:fixed;top:auto;bottom:0;left:0;right:0;width:auto;max-width:none;
+    position:fixed;top:auto;bottom:0;left:30px;right:30px;width:auto;max-width:none;
     border-radius:16px 16px 0 0;transform-origin:bottom center;
     animation:popUp .26s cubic-bezier(.2,.9,.3,1);
   }
@@ -778,7 +784,7 @@ footer{margin-top:auto;padding:16px 0 calc(18px + env(safe-area-inset-bottom,0px
 <aside id="navDrawer" class="nav-drawer" aria-label="分类菜单">
   <div class="nav-head">LYZ小卖部</div>
   <nav id="navList"></nav>
-  <div class="nav-date">数据生成于 2026-09-13 01:44</div>
+  <div class="nav-date">数据生成于 2026-09-13 22:17</div>
   <div class="nav-foot">
     <a class="nav-link" href="https://www.mousetester.cn/?utm_source=keyboard" target="_blank" rel="noopener">鼠标测试工具
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg>
@@ -846,6 +852,7 @@ footer{margin-top:auto;padding:16px 0 calc(18px + env(safe-area-inset-bottom,0px
     <table>
       <thead>
         <tr>
+          <th class="c-order-h"></th>
           <th class="sortable" data-key="编号">编号<span class="arr"></span></th>
           <th>品牌</th>
           <th>型号</th>
@@ -878,12 +885,12 @@ footer{margin-top:auto;padding:16px 0 calc(18px + env(safe-area-inset-bottom,0px
 <!-- 订购确认弹窗 -->
 <div id="orderModal" class="om hidden">
   <div class="om-box">
-    <div class="om-img" id="omImg"></div>
+    <div class="om-img" id="omImg"><span class="om-id" id="omId"></span></div>
     <div class="om-brand" id="omBrand"></div>
     <div class="om-model" id="omModel"></div>
     <div class="om-price" id="omPrice"></div>
-    <div class="om-id" id="omId"></div>
     <div class="om-tip">确认后粘贴到问卷第 1 题并填花名即可。<br>首次复制时浏览器可能询问剪贴板权限,请选择「允许」。</div>
+    <div class="om-warn">注意:此为预定单提交,并非确认凭证</div>
     <div class="om-btns">
       <button type="button" class="om-cancel" id="omCancel">取消</button>
       <button type="button" class="om-ok" id="omOk">确认预定</button>
@@ -933,7 +940,7 @@ footer{margin-top:auto;padding:16px 0 calc(18px + env(safe-area-inset-bottom,0px
 (function(){
 'use strict';
 
-var GEN_DATE = '2026-09-13 01:44';
+var GEN_DATE = '2026-09-13 22:17';
 var FIELDS = ['品牌','型号','键位','轴体','颜色','无线','购入价','购买时间','购买渠道','闲置价格'];
 
 var DEFAULT_DATA = JSON.parse(document.getElementById('kb-data').textContent);
@@ -1084,7 +1091,11 @@ function previewUrl(item, i){
 }
 /* ---------- 订购表单 + 云端锁定 ---------- */
 /* 腾讯问卷:建好问卷后把链接填到 survey;问卷设置里需定义自定义参数 pid/model/price */
-var ORDER_CFG = { survey: 'https://wj.qq.com/s2/27863577/vp82/' };
+var ORDER_CFG = { survey: 'https://wj.qq.com/s2/27863577/vp82/', cat: '鼠标' };
+/* 品类编号映射(与工作流确认时填写的品类编号一致): 1=鼠标, 2=键盘 */
+var CAT_NO = { '鼠标': 1, '键盘': 2 };
+var CAT_TYPE = { '鼠标': 'type1', '键盘': 'type2' };
+var CAT_NO_NAME = { 1: '鼠标', 2: '键盘' };
 var LOCKS = {};   /* overlay.json:编号(去前导零的整数) → 状态 */
 function loadLocks(){
   var done = function(){
@@ -1103,8 +1114,12 @@ function lockIdOf(item){
   return isNaN(n) ? null : n;
 }
 function isLocked(item){
-  var n = lockIdOf(item);
-  return n !== null && LOCKS[n] !== undefined;
+  var k = ORDER_CFG.cat + ':' + str(item['编号']);
+  return LOCKS[k] !== undefined;
+}
+function lockWhoOfItem(item){
+  var ent = LOCKS[ORDER_CFG.cat + ':' + str(item['编号'])];
+  return (ent && typeof ent === 'object' && ent.name) ? ent.name : '其他人';
 }
 /* 渲染后同步锁定状态:灰按钮 + 订购确认中标签 */
 function applyLocks(){
@@ -1145,6 +1160,13 @@ function orderBtnHtml(item){
   return '<button type="button" class="order-btn" data-order="' + esc(item['编号']) + '">预定</button>';
 }
 var omItem = null;
+function findItemById(id){
+  var want = String(parseInt(id, 10));
+  for(var i = 0; i < DATA.length; i++){
+    if(String(parseInt(DATA[i]['编号'], 10)) === want) return DATA[i];
+  }
+  return null;
+}
 /* 实时复查云端锁:点击订购/确认预定时再查一次 overlay,防止页面打开后别人刚下了单 */
 /* 复查三件事:云端锁 + 最新商品状态(卖家可能已改表发布)。status 非空返回其值 */
 function recheckLock(item, cb){
@@ -1193,12 +1215,14 @@ function lockWhoOf(item){
 function showOrderModal(item){
   omItem = item;
   var thumbs = thumbsOf(item);
-  $('#omImg').innerHTML = thumbs.length ? thumbPicture(thumbs[0], '', '(max-width:680px) 320px') : '';
+  /* omId 在 omImg 内部:先填编号再重写图片,避免 omId 被清掉变 null */
+  $('#omId').textContent = '#' + str(item['编号']);
+  $('#omImg').innerHTML = (thumbs.length ? thumbPicture(thumbs[0], '', '(max-width:680px) 320px') : '')
+    + '<span class="om-id" id="omId">#' + esc(str(item['编号'])) + '</span>';
   $('#omBrand').textContent = str(item['品牌']);
   $('#omModel').textContent = str(item['型号']) + comboHtml(item);
   var p = str(item['闲置价格']);
   $('#omPrice').innerHTML = (p && isFinite(Number(p))) ? '<span class="yen">¥</span>' + esc(money(p)) : esc(p || '面议');
-  $('#omId').textContent = '#' + str(item['编号']);
   $('#orderModal').classList.remove('hidden');
   document.body.style.overflow = 'hidden';
 }
@@ -1246,7 +1270,8 @@ function omConfirm(){
       return;
     }
     closeOrderModal();
-    var info = '#' + str(item['编号']) + ' ' + str(item['品牌']) + ' ' + str(item['型号']);
+    var catType = CAT_TYPE[ORDER_CFG.cat];
+    var info = catType + ' #' + str(item['编号']) + ' ' + str(item['品牌']) + ' ' + str(item['型号']);
     copyOrderInfo(info, function(ok){
       if(ok){
         var w = window.open(ORDER_CFG.survey, '_blank');
@@ -1742,11 +1767,12 @@ function renderTable(){
     });
     var buyTitle = buyParts.join(' + ');
     return '<tr data-id="'+esc(id)+'"'+(item['已出售']?' class="sold-tr"':'')+'>'
-      + '<td class="c-id"><span class="new-slot">'+(str(item['新品']).trim() === '1' ? '<span class="new-tag-inline">NEW</span>' : '')+'</span>#'+esc(id)+'</td>'
+      + '<td class="c-order">'+orderBtnHtml(item)+'</td>'
+      + '<td class="c-id">#'+esc(id)+'</td>'
       + '<td class="c-brand"><span class="bt">'+esc(item['品牌'])+'</span></td>'
       + '<td class="c-model"><span class="mw"><span class="mt">'+esc(item['型号'])+'</span>'+comboHtml(item)
       + '<button type="button" class="copy-btn" data-id="'+esc(id)+'" title="复制编号、品牌、型号">'+COPY_SVG+'</button></span></td>'
-      + '<td class="c-img" id="ti-'+esc(id)+'"><span class="noimg">—</span></td>'
+      + '<td class="c-img" id="ti-'+esc(id)+'"'+(str(item['新品']).trim() === '1' ? ' data-new="1"' : '')+'><span class="noimg">—</span></td>'
       + tdc('键位', '<td>'+esc(keys)+'</td>')
       + tdc('轴体', '<td>'+esc(item['轴体'])+'</td>')
       + tdc('颜色', '<td>'+esc(item['颜色'])+'</td>')
@@ -1795,7 +1821,7 @@ function fillTableThumb(item){
       return thumbPicture(t, '', '60px');
     }).join('');
     var corner = isNew ? '<span class="new-corner">NEW</span>' : '';
-    cell.innerHTML = '<span class="ti-wrap">' + corner + '<span class="ti-row">'+imgs+'</span></span>';
+    cell.innerHTML = '<span class="ti-row">'+imgs+'</span>' + corner;
     cell.style.cursor = '';
     cell.title = '';
     Array.prototype.forEach.call(cell.querySelectorAll('img'), function(im){
@@ -2214,6 +2240,19 @@ function bind(){
     copyItemInfo(b);
   });
   $('#tbBody').addEventListener('click', function(e){
+    var ob = e.target.closest('.order-btn');
+    if(ob){
+      e.stopPropagation();
+      try{
+        var item = findItemById(ob.getAttribute('data-order'));
+        if(!item){ toast('未找到该商品'); return; }
+        openOrderForm(item);
+      }catch(err){
+        toast('预定打开失败:' + (err && err.message ? err.message : err));
+        throw err;
+      }
+      return;
+    }
     var b = e.target.closest('.copy-btn');
     if(!b) return;
     e.stopPropagation();
