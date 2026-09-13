@@ -753,7 +753,7 @@ button.nav-link{border:none;background:none;width:100%;font:inherit;text-align:l
   opacity:0;pointer-events:none;transition:opacity .22s}
 .drv-mask.show{opacity:1;pointer-events:auto}
 .drv-drawer{
-  position:fixed;left:0;top:0;bottom:0;width:318px;max-width:90vw;background:#fff;z-index:73;
+  position:fixed;left:0;top:0;bottom:0;width:252px;max-width:90vw;background:#fff;z-index:73;
   transform:translateX(-102%);transition:transform .25s ease;
   box-shadow:8px 0 32px rgba(0,0,0,.18);padding:14px 12px;
   display:flex;flex-direction:column;
@@ -769,10 +769,10 @@ button.nav-link{border:none;background:none;width:100%;font:inherit;text-align:l
 .drv-sec{padding:2px 6px 14px}
 .drv-title{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:1px;margin:0 0 8px}
 .drv-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.drv-item{display:inline-flex;align-items:center;justify-content:center;gap:4px;
+.drv-item{display:inline-flex;align-items:center;justify-content:center;gap:3px;
   font-size:13px;font-weight:600;line-height:1.2;
   color:var(--ink);text-decoration:none;background:#f4f6fa;border:1px solid var(--line);
-  border-radius:10px;padding:9px 8px}
+  border-radius:10px;padding:8px 5px}
 .drv-item:hover{background:var(--accent-weak);border-color:var(--accent);color:var(--accent)}
 .drv-item svg{opacity:.45}
 .drv-item.off{color:#b6bdcb;background:#fafbfd;border-color:#eef0f5;cursor:default}
@@ -814,7 +814,7 @@ button.nav-link{border:none;background:none;width:100%;font:inherit;text-align:l
 <aside id="navDrawer" class="nav-drawer" aria-label="分类菜单">
   <div class="nav-head">LYZ小卖部</div>
   <nav id="navList"></nav>
-  <div class="nav-date">数据生成于 2026-09-14 03:59</div>
+  <div class="nav-date">数据生成于 2026-09-14 04:05</div>
   <div class="nav-foot">
     <button type="button" class="nav-link" id="drvBtn">网页驱动
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
@@ -834,7 +834,7 @@ button.nav-link{border:none;background:none;width:100%;font:inherit;text-align:l
     <span>网页驱动</span>
     <button type="button" class="drv-close" id="drvClose" title="关闭" aria-label="关闭">✕</button>
   </div>
-  <div class="drv-tip">点品牌名在新标签页打开官方网页版驱动</div>
+  <div class="drv-tip">点品牌名打开官方网页驱动</div>
   <div class="drv-body">
     <section class="drv-sec">
       <h4 class="drv-title">键盘</h4>
@@ -992,7 +992,7 @@ button.nav-link{border:none;background:none;width:100%;font:inherit;text-align:l
 (function(){
 'use strict';
 
-var GEN_DATE = '2026-09-14 03:59';
+var GEN_DATE = '2026-09-14 04:05';
 var FIELDS = ['品牌','型号','键位','轴体','颜色','无线','购入价','购买时间','购买渠道','闲置价格'];
 
 var DEFAULT_DATA = JSON.parse(document.getElementById('kb-data').textContent);
@@ -1055,15 +1055,15 @@ var PY_INIT_MAP = (function(){
     f:'腹风凤飞方芬丰福',
     g:'高光钢骨谷果冠国歌戈',
     h:'黑红灰火海河湖华幻慧汉航豪虹鸿',
-    j:'金江静佳捷极加俊杰君嘉剑晶坚聚',
+    j:'金江静佳捷极加俊杰君嘉剑晶坚聚机',
     k:'凯空宽可科卡',
-    l:'狼罗蓝雷龙灵利鹿绿朗立乐联猎麟',
-    m:'米梦明幂马猫茂曼美麦木慕',
+    l:'狼罗蓝雷龙灵利鹿绿朗立乐联猎麟洛',
+    m:'米梦明幂马猫茂曼美麦木慕迈',
     n:'宁南诺尼奴农怒',
     p:'派品普鹏平朋佩',
     q:'前青轻奇器强琴清秋群启千潜',
     r:'日睿若然荣忍',
-    s:'山圣神水三世士双尚少深十狮闪顺松森',
+    s:'山圣神水三世士双尚少深十狮闪顺松森赛',
     t:'天铁铜桃太泰陶同图甜',
     w:'物微王无文万卫温沃武舞瓦',
     x:'新小星雪幸心欣鑫兄雄玄西夏修秀',
