@@ -784,7 +784,7 @@ footer{margin-top:auto;padding:16px 0 calc(18px + env(safe-area-inset-bottom,0px
 <aside id="navDrawer" class="nav-drawer" aria-label="分类菜单">
   <div class="nav-head">LYZ小卖部</div>
   <nav id="navList"></nav>
-  <div class="nav-date">数据生成于 2026-09-13 22:29</div>
+  <div class="nav-date">数据生成于 2026-09-13 22:38</div>
   <div class="nav-foot">
     <a class="nav-link" href="https://www.mousetester.cn/?utm_source=keyboard" target="_blank" rel="noopener">鼠标测试工具
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg>
@@ -940,7 +940,7 @@ footer{margin-top:auto;padding:16px 0 calc(18px + env(safe-area-inset-bottom,0px
 (function(){
 'use strict';
 
-var GEN_DATE = '2026-09-13 22:29';
+var GEN_DATE = '2026-09-13 22:38';
 var FIELDS = ['品牌','型号','键位','轴体','颜色','无线','购入价','购买时间','购买渠道','闲置价格'];
 
 var DEFAULT_DATA = JSON.parse(document.getElementById('kb-data').textContent);
@@ -1113,20 +1113,26 @@ function lockIdOf(item){
   var n = parseInt(str(item['编号']), 10);
   return isNaN(n) ? null : n;
 }
+function lockKeyOf(item){
+  return CAT_NO[ORDER_CFG.cat] + ':' + parseInt(str(item['编号']), 10);
+}
 function isLocked(item){
-  var k = ORDER_CFG.cat + ':' + str(item['编号']);
-  return LOCKS[k] !== undefined;
+  return LOCKS[lockKeyOf(item)] !== undefined;
 }
 function lockWhoOfItem(item){
-  var ent = LOCKS[ORDER_CFG.cat + ':' + str(item['编号'])];
+  var ent = LOCKS[lockKeyOf(item)];
   return (ent && typeof ent === 'object' && ent.name) ? ent.name : '其他人';
 }
 /* 渲染后同步锁定状态:灰按钮 + 订购确认中标签 */
 function applyLocks(){
   /* 锁值兼容两种形态:对象 {status,name}(新版,含花名) 或字符串(旧版) */
   var locks = {};
+  var myCat = CAT_NO[ORDER_CFG.cat];
   Object.keys(LOCKS).forEach(function(k){
-    var n = parseInt(k, 10);
+    var parts = String(k).split(':');
+    if(parts.length !== 2) return;
+    if(parseInt(parts[0], 10) !== myCat) return;   /* 只认本品类的锁 */
+    var n = parseInt(parts[1], 10);
     if(!isNaN(n)) locks[n] = LOCKS[k];
   });
   document.querySelectorAll('#cardsView .card').forEach(function(card){
@@ -1180,7 +1186,7 @@ function recheckLock(item, cb){
     applyLocks();
     var locked = isLocked(item);
     var who = '';
-    var ent = LOCKS[String(pid)];
+    var ent = LOCKS[CAT_NO[ORDER_CFG.cat] + ':' + pid];
     if(ent && typeof ent === 'object' && ent.name) who = ent.name;
     /* 从最新页面 HTML 里解析该商品的状态(数据内嵌在 kb-data script 标签) */
     var latestStatus = null;
@@ -1209,7 +1215,7 @@ function openOrderForm(item){
   showOrderModal(item);
 }
 function lockWhoOf(item){
-  var ent = LOCKS[String(lockIdOf(item))];
+  var ent = LOCKS[lockKeyOf(item)];
   return (ent && typeof ent === 'object' && ent.name) ? ent.name : '其他人';
 }
 function showOrderModal(item){
