@@ -435,7 +435,6 @@ tbody tr:last-child td{border-bottom:none}
 th.c-img{white-space:nowrap;width:1%}
 .c-img{width:1%;max-width:120px;position:relative}
 .noimg{color:#c3c9d6}
-.c-st{white-space:nowrap}
 .st-tag{display:inline-block;font-size:11px;font-weight:600;color:#1d4ed8;
   background:#e8efff;border:1px solid #c9d8fb;border-radius:999px;padding:2px 9px;
   white-space:nowrap}
@@ -784,7 +783,7 @@ footer{margin-top:auto;padding:16px 0 calc(18px + env(safe-area-inset-bottom,0px
 <aside id="navDrawer" class="nav-drawer" aria-label="分类菜单">
   <div class="nav-head">LYZ小卖部</div>
   <nav id="navList"></nav>
-  <div class="nav-date">数据生成于 2026-09-14 02:55</div>
+  <div class="nav-date">数据生成于 2026-09-14 03:16</div>
   <div class="nav-foot">
     <a class="nav-link" href="https://www.mousetester.cn/?utm_source=keyboard" target="_blank" rel="noopener">鼠标测试工具
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg>
@@ -940,7 +939,7 @@ footer{margin-top:auto;padding:16px 0 calc(18px + env(safe-area-inset-bottom,0px
 (function(){
 'use strict';
 
-var GEN_DATE = '2026-09-14 02:55';
+var GEN_DATE = '2026-09-14 03:16';
 var FIELDS = ['品牌','型号','键位','轴体','颜色','无线','购入价','购买时间','购买渠道','闲置价格'];
 
 var DEFAULT_DATA = JSON.parse(document.getElementById('kb-data').textContent);
@@ -1168,16 +1167,12 @@ function applyLocks(){
     var ent = locks[n];
     var locked = ent !== undefined && ent !== false;
     var who = (ent && typeof ent === 'object' && ent.name) ? ent.name : '';
-    var statusCell = tr.querySelector('td.c-st .st-tag');
-    var confirmed = false;
-    if(statusCell){
-      var sv = statusCell.textContent.trim();
-      confirmed = sv === '已预订' || sv === '已售出';
-    }
-    if(locked && !confirmed){
+    /* 卖家已改过状态的行(已预订/完成/失踪…):第一列已经是状态标签,不再插手 */
+    if(str(tr.getAttribute('data-status') || '').trim()) return;
+    if(locked){
       td.innerHTML = '<span class="lock-tag" style="position:static;display:inline-block">' + (who ? who + '确认中' : '预定确认中') + '</span>';
-    } else if(!td.querySelector('.order-btn') && !locked){
-      td.innerHTML = orderBtnHtml({ '编号': tr.getAttribute('data-id'), '已出售': tr.classList.contains('sold-tr'), '状态': confirmed ? '已预订' : '' });
+    } else if(!td.querySelector('.order-btn')){
+      td.innerHTML = orderBtnHtml({ '编号': tr.getAttribute('data-id'), '已出售': tr.classList.contains('sold-tr'), '状态': '' });
     }
   });
 }
@@ -1781,10 +1776,8 @@ function renderTable(){
     var origCell = (o!=='' && isFinite(Number(o))) ? '<span class="price-cell orig-p">¥'+esc(money(o))+'</span>' : '';
     var offv = calcOffPct(item);
     var offCell = offv !== null ? '<span class="off">-'+offv+'%</span>' : '';
-    var stCell = '';
-    if(FILTER_CFG.showStatusCol){
-      stCell = '<td class="c-st">' + stTagHtml(item) + '</td>';
-    }
+    /* 状态与预定合并到最前面一列:有状态就显示状态,否则显示预定按钮 */
+    var orderCell = (FILTER_CFG.showStatusCol ? stTagHtml(item) : '') || orderBtnHtml(item);
     var buyCell = calcTotalCost(item) > 0 ? '¥'+esc(money(String(calcTotalCost(item)))) : '';
     var buyNames = {'购入价':'购入价','壳体购入价':'壳体','键帽购入价':'键帽'};
     var buyParts = [];
@@ -1793,8 +1786,8 @@ function renderTable(){
       if(v!=='' && isFinite(Number(v))) buyParts.push(buyNames[k]+'¥'+esc(money(v)));
     });
     var buyTitle = buyParts.join(' + ');
-    return '<tr data-id="'+esc(id)+'"'+(item['已出售']?' class="sold-tr"':'')+'>'
-      + '<td class="c-order">'+orderBtnHtml(item)+'</td>'
+    return '<tr data-id="'+esc(id)+'" data-status="'+esc(str(item['状态']).trim())+'"'+(item['已出售']?' class="sold-tr"':'')+'>'
+      + '<td class="c-order">'+orderCell+'</td>'
       + '<td class="c-id">#'+esc(id)+'</td>'
       + '<td class="c-brand"><span class="bt">'+esc(item['品牌'])+'</span></td>'
       + '<td class="c-model"><span class="mw"><span class="mt">'+esc(item['型号'])+'</span>'+comboHtml(item)
@@ -1811,7 +1804,6 @@ function renderTable(){
       + '<td class="c-off">'+offCell+'</td>'
       + tdc('原厂壳体', '<td class="c-fac">'+str(item['原厂壳体']).trim()+'</td>')
       + tdc('原厂键帽', '<td class="c-fac">'+str(item['原厂键帽']).trim()+'</td>')
-      + (FILTER_CFG.showStatusCol ? stCell : '')
       + '<td class="c-fac c-memo">'+str(item['备注']).trim()+'</td>'
       + '</tr>';
   }).join('');
@@ -2460,13 +2452,6 @@ document.body.classList.add(FILTER_CFG.compactCard ? 'layout-mouse' : 'layout-kb
   document.getElementById('saleMSBtn').textContent = SALE_LABEL + ':全部';
   if(FILTER_CFG.modelColWidth){
     document.documentElement.style.setProperty('--model-w', FILTER_CFG.modelColWidth + 'px');
-  }
-  if(FILTER_CFG.showStatusCol){
-    var ths = document.querySelectorAll('#tableView thead th');
-    var memoTh = ths[ths.length - 1];
-    var sth = document.createElement('th');
-    sth.textContent = '状态';
-    memoTh.parentNode.insertBefore(sth, memoTh);
   }
   if(FILTER_CFG.hideCols && FILTER_CFG.hideCols.length){
     document.querySelectorAll('thead th[data-key]').forEach(function(th){
