@@ -814,7 +814,7 @@ button.nav-link{border:none;background:none;width:100%;font:inherit;text-align:l
 <aside id="navDrawer" class="nav-drawer" aria-label="分类菜单">
   <div class="nav-head">LYZ小卖部</div>
   <nav id="navList"></nav>
-  <div class="nav-date">数据生成于 2026-09-14 23:34</div>
+  <div class="nav-date">数据生成于 2026-09-15 02:05</div>
   <div class="nav-foot">
     <button type="button" class="nav-link" id="drvBtn">网页驱动
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
@@ -992,7 +992,7 @@ button.nav-link{border:none;background:none;width:100%;font:inherit;text-align:l
 (function(){
 'use strict';
 
-var GEN_DATE = '2026-09-14 23:34';
+var GEN_DATE = '2026-09-15 02:05';
 var FIELDS = ['品牌','型号','键位','轴体','颜色','无线','购入价','购买时间','购买渠道','闲置价格'];
 
 var DEFAULT_DATA = JSON.parse(document.getElementById('kb-data').textContent);
@@ -1396,10 +1396,11 @@ function sortVal(item, key){
   }
 }
 function hasImage(item){ return origsOf(item).length > 0; }
-/* 状态排序权重:进行中(0) → 已预订(1) → 失踪(2);完成由已出售置底规则处理 */
+/* 状态排序权重:进行中(0) → 已预订(1) → 待交货(2) → 失踪(3);完成由已出售置底规则处理 */
 function statusRank(item){
   var s = str(item['状态']).trim();
-  if(s === '失踪') return 2;
+  if(s === '失踪') return 3;
+  if(s === '待交货') return 2;
   if(s === '已预订' || s === '已预定') return 1;
   return 0;
 }
@@ -1552,13 +1553,13 @@ function buildSinglePanel(panelId, options, currentV){
 function buildSalePanel(){
   var saleOpts;
   if(FILTER_CFG.saleFrom === 'status'){
-    /* 顺序:待售中 → 已预订 → 失踪 → 已售出(与卡片置底分组一致);表里出现其他状态时追加在最后 */
+    /* 顺序:待售中 → 已预订 → 待交货 → 失踪 → 已售出(与卡片置底分组一致);表里出现其他状态时追加在最后 */
     var seen = {};
     DATA.forEach(function(it){
       var v = str(it['状态']).trim();
       if(v) seen[v] = 1;
     });
-    var order = ['已预订', '失踪', '完成'];
+    var order = ['已预订', '待交货', '失踪', '完成'];
     var label = function(v){ return v === '完成' ? '已售出' : v; };
     saleOpts = [{v:'',label:'全部'},{v:'__none__',label:'待售中'}];
     order.forEach(function(v){
