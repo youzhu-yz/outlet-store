@@ -314,6 +314,8 @@ tr.sold-tr:hover{background:#f2f4f9}
   padding:3px;border-radius:6px;line-height:0;flex:none;
 }
 .copy-btn:hover{color:var(--accent);background:var(--accent-weak)}
+/* 缩略图不参与浏览器原生拖拽:拖动小图不该拖出图片幽灵 */
+.card-img img,.card-strip img,.ti-row img{-webkit-user-drag:none;user-select:none}
 .c-model{width:1%;max-width:var(--model-w,185px)}
 .c-model .mw{display:flex;align-items:center;gap:8px;width:100%;box-sizing:border-box;min-width:0}
 .c-model .mw .mt{flex:0 1 auto;min-width:0;overflow:hidden;white-space:nowrap}
@@ -829,7 +831,7 @@ button.nav-link{border:none;background:none;width:100%;font:inherit;text-align:l
 <aside id="navDrawer" class="nav-drawer" aria-label="分类菜单">
   <div class="nav-head">LYZ小卖部</div>
   <nav id="navList"></nav>
-  <div class="nav-date">数据生成于 2026-09-16 01:03</div>
+  <div class="nav-date">数据生成于 2026-09-16 01:15</div>
   <div class="nav-foot">
     <button type="button" class="nav-link" id="drvBtn">网页驱动
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
@@ -1010,7 +1012,7 @@ button.nav-link{border:none;background:none;width:100%;font:inherit;text-align:l
 (function(){
 'use strict';
 
-var GEN_DATE = '2026-09-16 01:03';
+var GEN_DATE = '2026-09-16 01:15';
 var FIELDS = ['品牌','型号','键位','轴体','颜色','无线','购入价','购买时间','购买渠道','闲置价格'];
 
 var DEFAULT_DATA = JSON.parse(document.getElementById('kb-data').textContent);
@@ -1805,7 +1807,7 @@ function fillCardImages(item){
     item._cur = item._cur || 0;
     var count = (!FILTER_CFG.hideCount && thumbs.length>1) ? '<span class="count">'+thumbs.length+' 张</span>' : '';
     box.innerHTML = thumbPicture(thumbs[item._cur], 'main', '(max-width:680px) 92vw, 350px') + badge + count + orderBtnHtml(item);
-    box.onclick = function(){ openOriginal(item, item._cur || 0); };
+    box.onclick = function(ev){ if(!isTapClick(ev)) return; openOriginal(item, item._cur || 0); };
     var ob = box.querySelector('.order-btn');
     if(ob) ob.onclick = function(ev){ ev.stopPropagation(); openOrderForm(item); };
   }else{
@@ -1912,6 +1914,13 @@ function fitTableModels(){
   });
 }
 /* 打开原图(网络路径,点击时才加载) */
+/* 记录最近一次按下的位置:拖过小图不该被当成点击,否则会误开大图 */
+var lastDownPt = null;
+document.addEventListener('pointerdown', function(e){ lastDownPt = {x:e.clientX, y:e.clientY}; }, true);
+function isTapClick(e){
+  if(!lastDownPt || !e) return true;
+  return Math.abs(e.clientX - lastDownPt.x) <= 10 && Math.abs(e.clientY - lastDownPt.y) <= 10;   /* 10px 容差:手指轻点的抖动不算拖动 */
+}
 function openOriginal(item, i){
   if(!origsOf(item).length) return;
   openLightbox(item, i);
@@ -1936,9 +1945,9 @@ function fillTableThumb(item){
     cell.style.cursor = '';
     cell.title = '';
     Array.prototype.forEach.call(cell.querySelectorAll('img'), function(im){
-      im.onclick = function(ev){ ev.stopPropagation(); openOriginal(item, Number(im.getAttribute('data-i'))); };
+      im.onclick = function(ev){ if(!isTapClick(ev)) return; ev.stopPropagation(); openOriginal(item, Number(im.getAttribute('data-i'))); };
     });
-    cell.onclick = function(){ openOriginal(item, 0); };
+    cell.onclick = function(ev){ if(!isTapClick(ev)) return; openOriginal(item, 0); };
   }else{
     cell.innerHTML = '<span class="noimg">—</span>';
     cell.style.cursor = '';
@@ -2023,6 +2032,7 @@ function openLightbox(item, i, listOverride){
   resetZoom();
   /* 分级加载:先显示 800px 预览,原图在后台下载,完成后自动替换 */
   LB.fullDone = false;
+  if(window.lbClearCloseT) window.lbClearCloseT();   /* 避免上一次的点击关闭把刚打开的灯箱关掉 */
   $('#lightbox').classList.remove('hidden');
   /* 大图打开期间锁定背景页面滚动 */
   document.documentElement.style.overflow = 'hidden';
@@ -2039,7 +2049,7 @@ function lbLoadFull(){
   fetchImg(LB.list[wantIdx], token, function(p){ ringDash(p); if(ld && token === lbLoadToken) ld.classList.remove('hidden'); }).then(function(url){
     if(!url || token !== lbLoadToken || LB.idx !== wantIdx) return;
     var img = $('#lbImg');
-    img.src = url;
+    setLbSrc(url);
     fitStage();
     if(ld) ld.classList.add('hidden');
   });
@@ -2054,6 +2064,24 @@ function ringDash(pct){
   var v = Math.max(0, Math.min(1, pct));
   ring.setAttribute('stroke-dashoffset', String(C * (1 - v)));
   if(txt) txt.textContent = Math.round(v * 100) + '%';
+}
+/* blob URL 记账:一次开图会连原图一起拉(可达十几 MB),不释放会随来回点图不断堆积吃内存 */
+var lbBlobUrls = [];
+function lbTrackBlob(u){
+  if(u && String(u).indexOf('blob:') === 0) lbBlobUrls.push(u);
+  return u;
+}
+function lbFreeBlobs(keep){
+  lbBlobUrls = lbBlobUrls.filter(function(u){
+    if(u === keep) return true;
+    try { URL.revokeObjectURL(u); } catch(e){}
+    return false;
+  });
+}
+/* 换图:先在 img 上换成新地址,再释放其它旧的 blob */
+function setLbSrc(url){
+  $('#lbImg').src = url;
+  lbFreeBlobs(url);
 }
 /* 流式取图:返回 Promise(blob URL / 原地址),onProg 上报 0~1 进度;换图或关闭后自动作废 */
 function fetchImg(src, token, onProg){
@@ -2078,7 +2106,7 @@ function fetchImg(src, token, onProg){
           settled = true;
           if(token !== lbLoadToken || !blobs.length){ resolve(token === lbLoadToken ? src : null); return; }
           if(onProg) onProg(1);
-          resolve(URL.createObjectURL(new Blob(blobs, { type:mime })));
+          resolve(lbTrackBlob(URL.createObjectURL(new Blob(blobs, { type:mime }))));
         });
       }).catch(function(){ resolve(src); });
     }else{
@@ -2091,7 +2119,7 @@ function loadLbSrc(src, token){
   var img = $('#lbImg');
   fetchImg(src, token, function(p){ ringDash(p); }).then(function(url){
     if(token !== lbLoadToken || !url) return;
-    img.src = url;
+    setLbSrc(url);
     if(img.complete && img.naturalWidth){ ringDash(1); doneLbImg(); }
   });
 }
@@ -2136,11 +2164,13 @@ function navLb(d){
 }
 function closeLb(){
   $('#lightbox').classList.add('hidden');
+  if(window.lbClearCloseT) window.lbClearCloseT();   /* 取消待执行的点击关闭 */
   document.documentElement.style.overflow = '';
   document.body.style.overflow = '';
   var img = $('#lbImg');
   /* 换成 1px 占位图,立即释放已解码的大位图,避免后续滚动卡顿 */
   img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+  lbFreeBlobs(null);   /* 释放本次会话拉过的所有 blob,否则每开一次图就漏一张原图 */
   img.style.transform = '';
   img.style.willChange = 'auto';
   img.style.visibility = '';
@@ -2216,6 +2246,11 @@ function bind(){
   /* 搜索:图标按钮开合,点外部或滚动关闭 */
   $('#searchBtn').addEventListener('click', function(){
     searchOpen ? closeSearch() : openSearch();
+  });
+  /* 缩略图禁止原生拖拽(部分浏览器只认 draggable,这里再兜一层) */
+  document.addEventListener('dragstart', function(e){
+    var t = e.target;
+    if(t && t.tagName === 'IMG' && t.closest('#cardsView, #tbBody')) e.preventDefault();
   });
   /* 订购确认弹窗 */
   $('#omOk').addEventListener('click', omConfirm);
@@ -2432,8 +2467,21 @@ function bind(){
   $('#lbClose').addEventListener('click', closeLb);
   $('#lbPrev').addEventListener('click', function(e){ e.stopPropagation(); navLb(-1); });
   $('#lbNext').addEventListener('click', function(e){ e.stopPropagation(); navLb(1); });
+  /* 点深色区域或点大图都能关闭:.lb-stage 是全屏的,不能像以前那样把它排除在外 */
+  var lbCloseT = null, lbDown = null;
+  window.lbClearCloseT = function(){ clearTimeout(lbCloseT); lbCloseT = null; };
   $('#lightbox').addEventListener('click', function(e){
-    if(!e.target.closest('img, .lb-stage, .lb-x, .lb-nav, .lb-zoom')) closeLb();
+    if(e.target.closest('.lb-x, .lb-nav, .lb-zoom')) return;   /* 这些按钮各自处理 */
+    if(lbz.z > 1) return;                                     /* 放大状态:点击用于拖动,不关闭 */
+    if(e.target.closest('img')){
+      /* 拖过图片就不算点击:避免想拖动/划走时被误关闭 */
+      if(lbDown && (Math.abs(e.clientX - lbDown.x) > 6 || Math.abs(e.clientY - lbDown.y) > 6)) return;
+      /* 轻点图片:稍等一下,若是双击放大就取消关闭,避免和双击手势打架 */
+      window.lbClearCloseT();
+      lbCloseT = setTimeout(closeLb, 240);
+      return;
+    }
+    closeLb();
   });
   /* 大图缩放:滚轮/双指缩放,放大后拖动平移,双击放大或还原 */
   $('#lbStage').addEventListener('wheel', function(e){
@@ -2445,6 +2493,7 @@ function bind(){
   stage.addEventListener('pointerdown', function(e){
     if(e.button !== 0) return;
     pts.set(e.pointerId, {x:e.clientX, y:e.clientY});
+    lbDown = {x:e.clientX, y:e.clientY};
     stage.setPointerCapture(e.pointerId);
     if(pts.size === 2){
       var a = Array.from(pts.values());
@@ -2475,10 +2524,13 @@ function bind(){
     pts.delete(e.pointerId);
     if(pts.size < 2) pinch = null;
     if(pts.size === 0){ drag = null; stage.classList.remove('dragging'); }
+    /* 显式释放指针捕获:灯箱中途被关掉时避免捕获残留,导致之后点哪都没反应 */
+    try { if(stage.hasPointerCapture && stage.hasPointerCapture(e.pointerId)) stage.releasePointerCapture(e.pointerId); } catch(err){}
   }
   stage.addEventListener('pointerup', endPt);
   stage.addEventListener('pointercancel', endPt);
   stage.addEventListener('dblclick', function(e){
+    if(window.lbClearCloseT) window.lbClearCloseT();   /* 双击视为缩放,取消待执行的关闭 */
     if(lbz.z > 1) resetZoom();
     else zoomAt(e.clientX, e.clientY, 2.5);
   });
