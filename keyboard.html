@@ -331,6 +331,9 @@ tr.sold-tr:hover{background:#f2f4f9}
 .cur{color:var(--price);font-size:32px;font-weight:800;line-height:1}
 .cur .num{display:inline-block;transform:scaleY(1.1);transform-origin:bottom;font-style:normal}
 .cur .yen{font-size:14px;font-weight:700;margin-right:1px}
+/* 闲置价为空:灰色「未上架」 */
+.cur.unlisted,.price-cell .unlisted{color:#b6bdcb;font-size:15px;font-weight:600}
+.om-price .unlisted{color:#b6bdcb;font-size:18px;font-weight:600}
 .orig{font-size:12px;color:#a3aab8;margin-top:1px;text-decoration:line-through}
 .off{
   font-size:10px;font-weight:700;color:#d64a33;background:#fdeceb;
@@ -831,7 +834,7 @@ button.nav-link{border:none;background:none;width:100%;font:inherit;text-align:l
 <aside id="navDrawer" class="nav-drawer" aria-label="分类菜单">
   <div class="nav-head">LYZ小卖部</div>
   <nav id="navList"></nav>
-  <div class="nav-date">数据生成于 2026-09-16 01:15</div>
+  <div class="nav-date">数据生成于 2026-09-18 20:43</div>
   <div class="nav-foot">
     <button type="button" class="nav-link" id="drvBtn">网页驱动
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
@@ -1012,7 +1015,7 @@ button.nav-link{border:none;background:none;width:100%;font:inherit;text-align:l
 (function(){
 'use strict';
 
-var GEN_DATE = '2026-09-16 01:15';
+var GEN_DATE = '2026-09-18 20:43';
 var FIELDS = ['品牌','型号','键位','轴体','颜色','无线','购入价','购买时间','购买渠道','闲置价格'];
 
 var DEFAULT_DATA = JSON.parse(document.getElementById('kb-data').textContent);
@@ -1139,7 +1142,8 @@ function normWireless(v){
 }
 
 /* ---------- 图片(JSON 只存原图文件名,衍生路径前端拼接) ---------- */
-var NOIMG_SRC = 'assets/暂无图片.png';
+var NOIMG_SRC = 'assets/暂无图片.png';        /* 有价无图 */
+var NOIMG_UNLISTED_SRC = 'assets/未上架.png';  /* 闲置价为空(未上架)且无图 */
 function origsOf(item){ return item['原图'] || []; }          /* 原图文件名数组,如 "ATK U2 MINI.JPG" */
 function origUrl(name){ return FILTER_CFG.imgBase + '/' + name; }
 function stemOf(name){ var d = name.lastIndexOf('.'); return d < 0 ? name : name.slice(0, d); }
@@ -1322,7 +1326,8 @@ function showOrderModal(item){
   $('#omBrand').textContent = str(item['品牌']);
   $('#omModel').textContent = str(item['型号']) + comboHtml(item);
   var p = str(item['闲置价格']);
-  $('#omPrice').innerHTML = (p && isFinite(Number(p))) ? '<span class="yen">¥</span>' + esc(money(p)) : esc(p || '面议');
+  $('#omPrice').innerHTML = (p && isFinite(Number(p))) ? '<span class="yen">¥</span>' + esc(money(p))
+    : (p ? esc(p) : '<span class="unlisted">未上架</span>');
   $('#orderModal').classList.remove('hidden');
   document.body.style.overflow = 'hidden';
 }
@@ -1439,9 +1444,9 @@ function sortComparator(){
       var ra = statusRank(a), rb = statusRank(b);
       if(ra !== rb) return ra - rb;
     }
-    /* 带 NEW 标签的商品置顶:优先级仅次于状态分组 */
-    var na = isNew(a) ? 0 : 1, nb = isNew(b) ? 0 : 1;
-    if(na !== nb) return na - nb;
+    /* 带新品标的商品置顶:数值越大越靠前,优先级仅次于状态分组 */
+    var na = newVal(a), nb = newVal(b);
+    if(na !== nb) return nb - na;
     if(!FILTER_CFG.statusSort){
       /* 没有图片的键盘排最后(编号不变,只是位置靠后) */
       var ha = hasImage(a), hb = hasImage(b);
@@ -1463,6 +1468,7 @@ function sortComparator(){
   };
 }
 function renderAll(){
+  computeNewTiers();   /* 新品分档依赖整页数据,渲染前重算一次 */
   DISPLAY = DATA.slice().sort(sortComparator());
   renderCards();
   renderTable();
@@ -1646,7 +1652,7 @@ function priceHtml(item){
   }else if(p !== ''){
     out += '<div class="p-main"><span class="cur">'+esc(p)+'</span></div>';
   }else{
-    out = '<div class="p-main"><span class="cur">面议</span></div>';
+    out = '<div class="p-main"><span class="cur unlisted">未上架</span></div>';
   }
   var buys = [];
   ['购入价','壳体购入价','键帽购入价'].forEach(function(k){
@@ -1674,7 +1680,7 @@ function priceHtmlC(item){
   }else if(p !== ''){
     out += '<div class="p-main"><span class="cur">'+esc(p)+'</span></div>';
   }else{
-    out = '<div class="p-main"><span class="cur">面议</span></div>';
+    out = '<div class="p-main"><span class="cur unlisted">未上架</span></div>';
   }
   if(buys.length){
     out += '<div class="orig">购入价:'+buys.join('+')+offTag+'</div>';
@@ -1730,14 +1736,34 @@ function memoHtml(item){
 function isDeal(item){
   return Number(str(item['闲置价格']).trim()) === 1;
 }
-/* 新品:新品列=1 */
+/* 新品:新品列填正数即为新品,数值越大优先级越高(排序靠前、标签更醒目) */
+function newVal(item){
+  var n = Number(str(item['新品']).trim());
+  return (isFinite(n) && n > 0) ? n : 0;
+}
 function isNew(item){
-  return str(item['新品']).trim() === '1';
+  return newVal(item) > 0;
+}
+/* 分档:最大值 NEW++、次大值 NEW+、其余 NEW。按整页数据算,过滤或换排序时标签不会跳变 */
+var NEW_TIERS = {};
+function computeNewTiers(){
+  var vals = [], seen = {};
+  DATA.forEach(function(it){
+    var v = newVal(it);
+    if(v > 0 && !seen[v]){ seen[v] = 1; vals.push(v); }
+  });
+  vals.sort(function(a, b){ return b - a; });
+  NEW_TIERS = {};
+  if(vals.length) NEW_TIERS[vals[0]] = 'NEW++';
+  if(vals.length > 1) NEW_TIERS[vals[1]] = 'NEW+';
+}
+function newLabel(item){
+  return newVal(item) > 0 ? (NEW_TIERS[newVal(item)] || 'NEW') : '';
 }
 /* 卡片丝带:1 元特价优先,其次新品;两者都不是则不出丝带 */
 function cardTagHtml(item){
   if(isDeal(item)) return '<span class="new-tag deal">-99%</span>';
-  return isNew(item) ? '<span class="new-tag">NEW</span>' : '';
+  return isNew(item) ? '<span class="new-tag">' + newLabel(item) + '</span>' : '';
 }
 function renderCards(){
   $('#cardsView').innerHTML = DISPLAY.map(function(item){
@@ -1811,9 +1837,11 @@ function fillCardImages(item){
     var ob = box.querySelector('.order-btn');
     if(ob) ob.onclick = function(ev){ ev.stopPropagation(); openOrderForm(item); };
   }else{
-    box.innerHTML = '<img class="main noimg-main" src="'+NOIMG_SRC+'" alt="">' + badge;
+    /* 无图:未上架(闲置价为空)用「未上架」占位图,其余用中性的「暂无图片」 */
+    var unlisted = str(item['闲置价格']).trim() === '';
+    box.innerHTML = '<img class="main noimg-main" src="' + (unlisted ? NOIMG_UNLISTED_SRC : NOIMG_SRC) + '" alt="">' + badge;
     box.classList.add('no-img');
-    box.title = '暂无图片';
+    box.title = unlisted ? '未上架' : '暂无图片';
     box.onclick = null;
   }
   var strip = document.getElementById('cs-'+id);
@@ -1863,7 +1891,7 @@ function renderTable(){
               : esc(w);
     var p = str(item['闲置价格']).trim();
     var o = str(item['购入价']).trim();
-    var priceCell = p==='' ? '面议' : (isFinite(Number(p)) ? '¥'+esc(money(p)) : esc(p));
+    var priceCell = p==='' ? '<span class="unlisted">未上架</span>' : (isFinite(Number(p)) ? '¥'+esc(money(p)) : esc(p));
     var origCell = (o!=='' && isFinite(Number(o))) ? '<span class="price-cell orig-p">¥'+esc(money(o))+'</span>' : '';
     var offv = calcOffPct(item);
     var offCell = offv !== null ? '<span class="off">-'+offv+'%</span>' : '';
@@ -1940,7 +1968,7 @@ function fillTableThumb(item){
     }).join('');
     /* 角标与卡片丝带同一套优先级:1 元特价优先 */
     var corner = deal ? '<span class="new-corner deal">-99%</span>'
-               : (nw ? '<span class="new-corner">NEW</span>' : '');
+               : (nw ? '<span class="new-corner">' + newLabel(item) + '</span>' : '');
     cell.innerHTML = '<span class="ti-row">'+imgs+'</span>' + corner;
     cell.style.cursor = '';
     cell.title = '';
